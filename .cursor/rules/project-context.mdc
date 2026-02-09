@@ -1,0 +1,35 @@
+---
+description: Contexte et objectifs du POC nivologie Next.js
+alwaysApply: true
+---
+
+# POC Nivologie – Contexte projet
+
+## Objectif
+POC **Next.js** pour une app de **retours terrain nivologiques** (indices, observables, profils & tests), utilisable par amateurs, pros et nivologues. Référence méthodo/jargon : **Winter Journal** (Ortovox & Ben Reuters). Cible finale envisagée : **React Native** (hors ligne).
+
+## UX obligatoire
+- **Mobile first** ; design pensé pour **utilisation avec gants** : gros boutons (min. 44–48px touch target), zones tactiles larges, espacement généreux entre contrôles.
+
+## Stack technique (à respecter)
+- **Framework** : Next.js (15+ si précisé)
+- **Langage** : TypeScript
+- **UI** : React, TailwindCSS, Shadcn / Radix si utilisé
+- **Tests** : Vitest (unitaires), Playwright (e2e)
+- **Imports** : notation racine `@/...` plutôt que chemins relatifs
+
+## Conventions de code
+- Retours précoces (early returns)
+- Styling via Tailwind uniquement
+- Handlers nommés avec préfixe `handle` (ex. `handleClick`)
+- Constantes / arrow functions pour la logique
+- Accessibilité : tabindex, aria-label, onKeyDown sur les éléments interactifs
+- En monorepo : le contexte de l’app dépend du premier répertoire de travail
+
+## Architecture
+L’architecture détaillée du projet est décrite dans **`.cursor/ARCHITECTURE.md`**. S’y référer pour :
+- structure des dossiers et modules
+- flux métier (nivologie, bulletins, etc.)
+- conventions d’API, données, et nommage
+
+Respecter cette architecture et la faire évoluer dans ce fichier quand le projet change.
