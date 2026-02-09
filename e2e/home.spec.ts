@@ -2,5 +2,8 @@ import { test, expect } from "@playwright/test";
 
 test("home page loads", async ({ page }) => {
   await page.goto("/");
-  await expect(page).toHaveTitle(/Next/);
+  await expect(page).toHaveTitle(/POC Nivologie/);
+  await expect(
+    page.getByRole("link", { name: "Nouvelle observation" })
+  ).toBeVisible();
 });
