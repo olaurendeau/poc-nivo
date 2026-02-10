@@ -1,3 +1,5 @@
+import type { CriticalityLevel } from "@/lib/criticality";
+
 /**
  * Résumé d'une observation pour l'affichage sur la carte (marqueurs).
  */
@@ -7,6 +9,9 @@ export type ObservationMapItem = {
   longitude: number;
   place_name?: string | null;
   created_at?: string;
+  criticality_level: CriticalityLevel;
+  elevation?: number | null;
+  orientations?: string[];
 };
 
 /** Indices nivologiques (Winter Journal). */
@@ -75,6 +80,14 @@ export const ORIENTATION_LABELS: Record<OrientationKey, string> = {
   NO: "Nord-Ouest",
 };
 
+/** Photo pour le formulaire (avant enregistrement). */
+export type ObservationFormPhoto = {
+  id: string;
+  url: string;
+  publicId: string;
+  comment: string;
+};
+
 /** Données de saisie d'une observation (formulaire). */
 export type ObservationFormData = {
   latitude: number | null;
@@ -85,4 +98,7 @@ export type ObservationFormData = {
   indices: IndiceKey[];
   indiceDetails?: { avalanche?: AvalancheDetails };
   observables: ObservableKey[];
+  photos: ObservationFormPhoto[];
+  /** Date/heure de l'observation (format datetime-local: YYYY-MM-DDTHH:mm). */
+  observed_at: string;
 };

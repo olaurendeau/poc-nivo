@@ -7,6 +7,7 @@ import type {
   ObservationFormData,
   OrientationKey,
 } from "@/types/observation";
+import { saveObservationAction } from "@/lib/db/actions";
 import { getElevationAction } from "@/lib/elevation";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -15,6 +16,7 @@ import { LieuSection, type LieuState } from "@/components/observation/LieuSectio
 import { ObservablesSection } from "@/components/observation/ObservablesSection";
 import { OrientationRosace } from "@/components/observation/OrientationRosace";
 import { ProfilesTestsSection } from "@/components/observation/ProfilesTestsSection";
+import { DateSection, formatDateTimeLocal } from "@/components/observation/DateSection";
 import { PhotosSection } from "@/components/observation/PhotosSection";
 
 type ObservationFormProps = {
@@ -35,9 +37,12 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     indices: [],
     indiceDetails: {},
     observables: [],
+    photos: [],
+    observed_at: formatDateTimeLocal(new Date()),
   }));
   const [elevationLoading, setElevationLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (formData.latitude == null || formData.longitude == null) {
@@ -94,22 +99,36 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     setFormData((prev) => ({ ...prev, orientations }));
   }, []);
 
+  const handlePhotosChange = useCallback((photos: ObservationFormData["photos"]) => {
+    setFormData((prev) => ({ ...prev, photos }));
+  }, []);
+
+  const handleObservedAtChange = useCallback((observed_at: string) => {
+    setFormData((prev) => ({ ...prev, observed_at }));
+  }, []);
+
   const canSubmit =
     formData.latitude != null &&
     formData.longitude != null;
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent<HTMLFormElement>) => {
+    async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
       if (!canSubmit || isSubmitting) return;
       setIsSubmitting(true);
-      // TODO: appeler la Server Action d'enregistrement quand la DB sera en place
-      const redirectDelayMs = 2000;
-      setTimeout(() => {
-        router.push("/");
-      }, redirectDelayMs);
+      setSubmitError(null);
+
+      const result = await saveObservationAction(formData);
+
+      if (result.ok) {
+        router.push(`/observation/${result.id}`);
+        return;
+      }
+
+      setSubmitError(result.error);
+      setIsSubmitting(false);
     },
-    [canSubmit, isSubmitting, router]
+    [canSubmit, formData, isSubmitting, router]
   );
 
   return (
@@ -131,9 +150,21 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
           onChange={handleObservablesChange}
         />
         <ProfilesTestsSection />
-        <PhotosSection />
+        <PhotosSection
+          value={formData.photos}
+          onChange={handlePhotosChange}
+        />
+        <DateSection
+          value={formData.observed_at}
+          onChange={handleObservedAtChange}
+        />
       </div>
       <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-zinc-200 bg-zinc-50 p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        {submitError ? (
+          <p className="mb-2 text-center text-sm text-red-600" role="alert">
+            {submitError}
+          </p>
+        ) : null}
         {!canSubmit ? (
           <p className="mb-2 text-center text-sm text-zinc-500">
             Choisissez un lieu sur la carte pour permettre l&apos;enregistrement.
@@ -145,7 +176,7 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
           className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-zinc-900 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
           aria-label="Enregistrer l'observation"
         >
-          {isSubmitting ? "En cours de développement…" : "Enregistrer l'observation"}
+          {isSubmitting ? "Enregistrement…" : "Enregistrer l'observation"}
         </button>
       </div>
     </form>

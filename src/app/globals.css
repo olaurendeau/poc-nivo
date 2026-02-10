@@ -24,3 +24,9 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Marqueurs carte : masquer le fond par défaut de Leaflet pour les icônes custom */
+.leaflet-marker-icon.criticality-marker {
+  background: none !important;
+  border: none !important;
+}

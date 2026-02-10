@@ -1,16 +1,15 @@
 "use client";
 
-import { useRef, useState } from "react";
+import type { ObservationFormPhoto } from "@/types/observation";
 import {
   uploadObservationPhotoAction,
   type UploadedPhoto,
 } from "@/lib/cloudinary";
+import { useRef, useState } from "react";
 
-type PhotoItem = {
-  id: string;
-  url: string;
-  name: string;
-  comment: string;
+type PhotosSectionProps = {
+  value: ObservationFormPhoto[];
+  onChange: (photos: ObservationFormPhoto[]) => void;
 };
 
 const IconCamera = ({ className }: { className?: string }) => (
@@ -41,8 +40,7 @@ const IconLibrary = ({ className }: { className?: string }) => (
   </svg>
 );
 
-export const PhotosSection = () => {
-  const [photos, setPhotos] = useState<PhotoItem[]>([]);
+export const PhotosSection = ({ value: photos, onChange }: PhotosSectionProps) => {
   const [activePhotoId, setActivePhotoId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const captureInputRef = useRef<HTMLInputElement | null>(null);
@@ -52,6 +50,7 @@ export const PhotosSection = () => {
     if (!fileList || fileList.length === 0) return;
 
     setIsUploading(true);
+    const toAdd: ObservationFormPhoto[] = [];
     try {
       for (const file of Array.from(fileList)) {
         const formData = new FormData();
@@ -61,27 +60,22 @@ export const PhotosSection = () => {
         try {
           result = await uploadObservationPhotoAction(formData);
         } catch {
-          // Upload échoué, on ignore ce fichier pour le moment.
           continue;
         }
 
-        if (!result.url) {
+        if (!result.url || !result.publicId) {
           continue;
         }
 
-        setPhotos((prev) => [
-          ...prev,
-          {
-            id:
-              result.publicId ??
-              `${file.name}-${file.lastModified}-${Math.random()
-                .toString(36)
-                .slice(2)}`,
-            url: result.url,
-            name: file.name,
-            comment: "",
-          },
-        ]);
+        toAdd.push({
+          id: result.publicId,
+          url: result.url,
+          publicId: result.publicId,
+          comment: "",
+        });
+      }
+      if (toAdd.length > 0) {
+        onChange([...photos, ...toAdd]);
       }
     } finally {
       setIsUploading(false);
@@ -110,10 +104,10 @@ export const PhotosSection = () => {
     }
   };
 
-  const handleCommentChange = (id: string, value: string) => {
-    setPhotos((prev) =>
-      prev.map((photo) =>
-        photo.id === id ? { ...photo, comment: value } : photo
+  const handleCommentChange = (id: string, comment: string) => {
+    onChange(
+      photos.map((photo) =>
+        photo.id === id ? { ...photo, comment } : photo
       )
     );
   };
@@ -193,11 +187,11 @@ export const PhotosSection = () => {
                 type="button"
                 onClick={() => handleOpenPreview(photo.id)}
                 className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
-                aria-label={`Agrandir la photo ${photo.name}`}
+                aria-label={`Agrandir la photo ${photo.comment ? `: ${photo.comment}` : ""}`}
               >
                 <img
                   src={photo.url}
-                  alt={photo.name}
+                  alt={photo.comment || "Photo d'observation"}
                   className="h-24 w-full object-cover"
                 />
               </button>
@@ -234,7 +228,7 @@ export const PhotosSection = () => {
           <div className="relative z-10 max-h-full w-full max-w-md overflow-hidden rounded-2xl bg-black">
             <img
               src={activePhoto.url}
-              alt={activePhoto.name}
+              alt={activePhoto.comment || "Photo d'observation"}
               className="max-h-[70vh] w-full object-contain"
             />
             <button
