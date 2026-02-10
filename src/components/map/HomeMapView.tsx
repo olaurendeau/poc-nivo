@@ -105,6 +105,10 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
   const [filterRiskMax, setFilterRiskMax] = useState<CriticalityLevel>(5);
   const [filterFreshnessMinIndex, setFilterFreshnessMinIndex] = useState(0);
   const [filterFreshnessMaxIndex, setFilterFreshnessMaxIndex] = useState(4);
+  const [longPressLocation, setLongPressLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
 
   const handleMarkerScaleChange = useCallback(
@@ -167,10 +171,19 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
       if (e.key === "Escape") {
         setIsSettingsOpen(false);
         setIsFilterOpen(false);
+        setLongPressLocation(null);
       }
     },
     []
   );
+
+  const handleMapLongPress = useCallback((lat: number, lng: number) => {
+    setLongPressLocation({ lat, lng });
+  }, []);
+
+  const handleDismissLongPress = useCallback(() => {
+    setLongPressLocation(null);
+  }, []);
 
   useEffect(() => {
     setMarkerScale(getStoredMarkerScale());
@@ -188,6 +201,15 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
         // En cas d'échec, on garde le centre par défaut de la carte.
       });
   }, []);
+
+  useEffect(() => {
+    if (longPressLocation == null) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") handleDismissLongPress();
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [longPressLocation, handleDismissLongPress]);
 
   useEffect(() => {
     if (!isSettingsOpen && !isFilterOpen) return;
@@ -220,6 +242,7 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
               : undefined
           }
           markerScale={markerScale}
+          onLongPress={handleMapLongPress}
         />
       </div>
       <div
@@ -351,12 +374,60 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
       </div>
       <Link
         href={newObservationHref}
-        className="absolute bottom-6 left-1/2 z-[1000] flex min-h-[48px] min-w-[48px] -translate-x-1/2 items-center justify-center rounded-full bg-zinc-900 px-6 py-3 text-center text-base font-semibold text-white shadow-lg transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-800"
+        className="absolute bottom-6 right-6 z-[1000] flex min-h-[48px] min-w-[48px] items-center justify-center rounded-full bg-zinc-900 text-2xl font-light text-white shadow-lg transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-800"
         tabIndex={0}
         aria-label="Nouvelle observation"
       >
-        Nouvelle observation
+        +
       </Link>
+
+      {longPressLocation != null ? (
+        <div
+          className="absolute inset-0 z-[1100] flex items-end justify-center bg-black/30 p-4 pb-8"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="long-press-title"
+          aria-describedby="long-press-desc"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleDismissLongPress();
+          }}
+        >
+          <div
+            className="flex w-full max-w-sm flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              id="long-press-title"
+              className="text-lg font-semibold text-zinc-900"
+            >
+              Créer une observation ici ?
+            </h2>
+            <p id="long-press-desc" className="text-sm text-zinc-600">
+              Vous pouvez créer une nouvelle observation à cet emplacement sur la
+              carte.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleDismissLongPress}
+                className="min-h-[48px] flex-1 rounded-xl border border-zinc-300 bg-white px-4 font-medium text-zinc-700 transition-colors hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-100"
+                tabIndex={0}
+                aria-label="Annuler"
+              >
+                Annuler
+              </button>
+              <Link
+                href={`/observation/new?lat=${longPressLocation.lat}&lng=${longPressLocation.lng}`}
+                className="min-h-[48px] flex-1 rounded-xl bg-zinc-900 px-4 py-3 text-center font-semibold text-white transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-800"
+                tabIndex={0}
+                aria-label="Créer une observation à cet endroit"
+              >
+                Créer
+              </Link>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 };

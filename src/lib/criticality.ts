@@ -42,14 +42,26 @@ export const CRITICALITY_EXPLANATION =
 type ObservationInput = {
   indices: string[];
   observables: string[];
+  /** Tailles avalanche (1-5) si indice avalanche présent. Prioritaire pour la criticité. */
+  avalancheTailles?: number[];
 };
 
 /**
  * Calcule le niveau de criticité (1-5) à partir des indices et observables.
- * Algo basique : indices ont un poids 2, observables poids 1.
- * Score 0 → 1, 1-2 → 2, 3-4 → 3, 5-6 → 4, 7+ → 5.
+ * Si avalanche avec tailles : taille 1-2 → Marqué (3), 3 → Fort (4), 4-5 → Très fort (5).
+ * Sinon : indices poids 2, observables poids 1. Score 0 → 1, 1-2 → 2, 3-4 → 3, 5-6 → 4, 7+ → 5.
  */
 export const computeCriticality = (input: ObservationInput): CriticalityLevel => {
+  const hasAvalanche = input.indices?.includes("avalanche") ?? false;
+  const tailles = input.avalancheTailles ?? [];
+
+  if (hasAvalanche && tailles.length > 0) {
+    const maxTaille = Math.max(...tailles);
+    if (maxTaille <= 2) return 3; // Marqué
+    if (maxTaille === 3) return 4; // Fort
+    return 5; // Très fort (4-5)
+  }
+
   const indicesCount = input.indices?.length ?? 0;
   const observablesCount = input.observables?.length ?? 0;
   const score = indicesCount * 2 + observablesCount;

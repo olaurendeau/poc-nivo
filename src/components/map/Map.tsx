@@ -15,7 +15,14 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Link from "next/link";
 import { useEffect } from "react";
-import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  Marker,
+  Popup,
+  TileLayer,
+  useMap,
+} from "react-leaflet";
+import { MapLongPressHandler } from "@/components/map/MapLongPressHandler";
 
 const OPEN_TOPO_MAP_URL = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
 
@@ -89,7 +96,7 @@ const createMarkerIcon = (
           gap: 0;
         ">
           <span style="
-            font-size: ${Math.round(9 * scale)}px;
+            font-size: ${Math.round(7 * scale)}px;
             font-weight: 700;
             color: white;
             text-shadow: 0 0 2px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.5);
@@ -141,6 +148,7 @@ type MapProps = {
   observations: ObservationMapItem[];
   initialCenter?: [number, number];
   markerScale?: number;
+  onLongPress?: (lat: number, lng: number) => void;
 };
 
 /** Trie par date d'observation croissante pour que les plus récents soient rendus en dernier (au-dessus des plus anciens). */
@@ -157,6 +165,7 @@ export const Map = ({
   observations,
   initialCenter,
   markerScale = 1,
+  onLongPress,
 }: MapProps) => {
   const center: [number, number] =
     observations.length > 0
@@ -174,6 +183,9 @@ export const Map = ({
       attributionControl={false}
     >
       <TileLayer url={OPEN_TOPO_MAP_URL} />
+      {onLongPress != null ? (
+        <MapLongPressHandler onLongPress={onLongPress} />
+      ) : null}
       <MapFitBounds observations={observations} />
       {sortedForZIndex.map((obs) => {
         const elevationLabel = getElevationRoundedLabel(obs.elevation);
@@ -206,7 +218,7 @@ export const Map = ({
               ) : null}
               <Link
                 href={`/observation/${obs.id}`}
-                className="mt-2 inline-block rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+                className="mt-2 inline-block rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium !text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
                 tabIndex={0}
                 aria-label={`Voir l'observation ${obs.place_name ?? obs.id}`}
               >

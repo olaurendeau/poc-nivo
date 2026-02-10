@@ -29,9 +29,17 @@ export const getObservationsForMap =
       .limit(LIMIT_RECENT);
 
     return rows.map((r) => {
-      const indices = (r.indices as { keys?: string[] } | null)?.keys ?? [];
+      const indicesData = r.indices as
+        | { keys?: string[]; details?: { avalanche?: { tailles?: number[] } } }
+        | null;
+      const indices = indicesData?.keys ?? [];
       const observables = (r.observables as string[] | null) ?? [];
-      const criticality_level = computeCriticality({ indices, observables });
+      const avalancheTailles = indicesData?.details?.avalanche?.tailles;
+      const criticality_level = computeCriticality({
+        indices,
+        observables,
+        avalancheTailles,
+      });
       return {
         id: r.id,
         latitude: r.latitude,
@@ -82,11 +90,15 @@ export const getObservationById = async (
     comment?: string;
   }[];
 
-  const indices = (row.indices ?? { keys: [] }) as { keys: string[] };
+  const indicesData = (row.indices ?? { keys: [] }) as {
+    keys: string[];
+    details?: { avalanche?: { tailles?: number[] } };
+  };
   const observables = (row.observables ?? []) as string[];
   const criticality_level = computeCriticality({
-    indices: indices.keys,
+    indices: indicesData.keys,
     observables,
+    avalancheTailles: indicesData.details?.avalanche?.tailles,
   });
 
   return {
