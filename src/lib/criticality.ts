@@ -36,8 +36,12 @@ export const CRITICALITY_MARKER_COLORS: Record<CriticalityLevel, string> = {
   5: "#b91c1c",
 };
 
+/** Message court sur la criticité (sans détail du calcul). */
 export const CRITICALITY_EXPLANATION =
-  "Cette criticité reflète la typicité de la présence des indices d'instabilité (avalanches, fissures, woumpfs, observables) observés sur le terrain.";
+  "Indices d'instabilité observés sur le terrain.";
+
+/** Nombre de jours pour perdre un palier de criticité. */
+export const CRITICALITY_ATTENUATION_DAYS = 3;
 
 type ObservationInput = {
   indices: string[];
@@ -48,7 +52,7 @@ type ObservationInput = {
 
 /**
  * Calcule le niveau de criticité (1-5) à partir des indices et observables.
- * Si avalanche avec tailles : taille 1-2 → Marqué (3), 3 → Fort (4), 4-5 → Très fort (5).
+ * Si avalanche avec tailles : 1-3 → Marqué (3), 4 → Fort (4), 5 → Très fort (5).
  * Sinon : indices poids 2, observables poids 1. Score 0 → 1, 1-2 → 2, 3-4 → 3, 5-6 → 4, 7+ → 5.
  */
 export const computeCriticality = (input: ObservationInput): CriticalityLevel => {
@@ -57,9 +61,9 @@ export const computeCriticality = (input: ObservationInput): CriticalityLevel =>
 
   if (hasAvalanche && tailles.length > 0) {
     const maxTaille = Math.max(...tailles);
-    if (maxTaille <= 2) return 3; // Marqué
-    if (maxTaille === 3) return 4; // Fort
-    return 5; // Très fort (4-5)
+    if (maxTaille <= 3) return 3; // Marqué (tailles 1, 2, 3)
+    if (maxTaille === 4) return 4; // Fort
+    return 5; // Très fort (taille 5)
   }
 
   const indicesCount = input.indices?.length ?? 0;
@@ -71,4 +75,20 @@ export const computeCriticality = (input: ObservationInput): CriticalityLevel =>
   if (score <= 4) return 3;
   if (score <= 6) return 4;
   return 5;
+};
+
+/**
+ * Atténue la criticité dans le temps : -1 palier tous les 3 jours.
+ * La criticité ne descend pas en dessous de 1 (Faible).
+ */
+export const applyCriticalityTimeAttenuation = (
+  baseLevel: CriticalityLevel,
+  observedAt: string | Date
+): CriticalityLevel => {
+  const observed = new Date(observedAt).getTime();
+  const now = Date.now();
+  const daysSince = (now - observed) / (24 * 60 * 60 * 1000);
+  const paliers = Math.floor(daysSince / CRITICALITY_ATTENUATION_DAYS);
+  const attenuated = baseLevel - paliers;
+  return Math.max(1, Math.min(5, attenuated)) as CriticalityLevel;
 };

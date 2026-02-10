@@ -30,7 +30,6 @@ export const RiskBadge = ({
     <span
       className={`inline-flex items-center justify-center rounded-lg border font-semibold ${colors.bg} ${colors.text} ${colors.border} ${sizeClasses}`}
       aria-label={`Criticité : ${label} (niveau ${level}). ${CRITICALITY_EXPLANATION}`}
-      title={`${label} — ${CRITICALITY_EXPLANATION}`}
     >
       {showLabel ? label : level}
     </span>

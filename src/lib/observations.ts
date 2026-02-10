@@ -1,5 +1,9 @@
 import { desc, eq } from "drizzle-orm";
-import { computeCriticality, type CriticalityLevel } from "@/lib/criticality";
+import {
+  applyCriticalityTimeAttenuation,
+  computeCriticality,
+  type CriticalityLevel,
+} from "@/lib/criticality";
 import type { ObservationMapItem } from "@/types/observation";
 import { db } from "@/lib/db";
 import { observationsTable } from "@/lib/db/schema";
@@ -35,11 +39,17 @@ export const getObservationsForMap =
       const indices = indicesData?.keys ?? [];
       const observables = (r.observables as string[] | null) ?? [];
       const avalancheTailles = indicesData?.details?.avalanche?.tailles;
-      const criticality_level = computeCriticality({
+      const baseCriticality = computeCriticality({
         indices,
         observables,
         avalancheTailles,
       });
+      const observedAt =
+        r.observedAt ?? r.createdAt ?? new Date().toISOString();
+      const criticality_level = applyCriticalityTimeAttenuation(
+        baseCriticality,
+        observedAt
+      );
       return {
         id: r.id,
         latitude: r.latitude,
@@ -65,6 +75,8 @@ export type ObservationDetail = {
   observables: string[];
   photos: { id: string; url: string; publicId: string; comment: string }[];
   comment: string | null;
+  /** Date d'observation terrain (prioritaire pour l'affichage). */
+  observedAt: string;
   createdAt: string;
   updatedAt: string;
   criticality_level: CriticalityLevel;
@@ -95,11 +107,19 @@ export const getObservationById = async (
     details?: { avalanche?: { tailles?: number[] } };
   };
   const observables = (row.observables ?? []) as string[];
-  const criticality_level = computeCriticality({
+  const baseCriticality = computeCriticality({
     indices: indicesData.keys,
     observables,
     avalancheTailles: indicesData.details?.avalanche?.tailles,
   });
+  const observedAt = row.observedAt ?? row.createdAt ?? new Date();
+  const criticality_level = applyCriticalityTimeAttenuation(
+    baseCriticality,
+    observedAt
+  );
+
+  const observedAtStr =
+    row.observedAt?.toISOString() ?? row.createdAt?.toISOString() ?? "";
 
   return {
     id: row.id,
@@ -120,6 +140,7 @@ export const getObservationById = async (
       comment: p.comment ?? "",
     })),
     comment: row.comment ?? null,
+    observedAt: observedAtStr,
     createdAt: row.createdAt?.toISOString() ?? "",
     updatedAt: row.updatedAt?.toISOString() ?? "",
     criticality_level,

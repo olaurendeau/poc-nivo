@@ -8,8 +8,33 @@ import { IndicesDisplay } from "@/components/observation/IndicesDisplay";
 import { ObservationMapSection } from "@/components/observation/ObservationMapSection";
 import { ObservationPhotosGallery } from "@/components/observation/ObservationPhotosGallery";
 import { OrientationBadges } from "@/components/observation/OrientationBadges";
-import { CRITICALITY_EXPLANATION } from "@/lib/criticality";
 import { RiskBadge } from "@/components/observation/RiskBadge";
+import { CriticalityInfo } from "@/components/observation/CriticalityInfo";
+
+const formatFreshness = (observedAt: string): string => {
+  if (!observedAt) return "";
+  const observed = new Date(observedAt);
+  const now = new Date();
+  const diffMs = now.getTime() - observed.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const observedStart = new Date(
+    observed.getFullYear(),
+    observed.getMonth(),
+    observed.getDate()
+  );
+
+  if (diffDays < 0) return "À venir";
+  if (observedStart.getTime() === todayStart.getTime()) return "Aujourd'hui";
+  if (diffDays === 1) return "Hier";
+  if (diffDays >= 2 && diffDays <= 6) return `Il y a ${diffDays} jours`;
+  if (diffDays >= 7 && diffDays <= 13) return "Il y a 1 semaine";
+  if (diffDays >= 14 && diffDays <= 30)
+    return `Il y a ${Math.floor(diffDays / 7)} semaines`;
+  if (diffDays <= 60) return "Il y a 1 mois";
+  if (diffDays <= 365) return `Il y a ${Math.floor(diffDays / 30)} mois`;
+  return "Il y a plus d'un an";
+};
 
 type ObservationPageProps = {
   params: Promise<{ id: string }>;
@@ -23,8 +48,9 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
     notFound();
   }
 
-  const formattedDate = obs.createdAt
-    ? new Date(obs.createdAt).toLocaleDateString("fr-FR", {
+  const observedAt = obs.observedAt ?? obs.createdAt;
+  const formattedDate = observedAt
+    ? new Date(observedAt).toLocaleDateString("fr-FR", {
         day: "numeric",
         month: "long",
         year: "numeric",
@@ -32,6 +58,7 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
         minute: "2-digit",
       })
     : "";
+  const freshness = formatFreshness(observedAt);
 
   const avalancheDetails = obs.indices.details?.avalanche as
     | { type?: string; cassure?: string; tailles?: number[] }
@@ -50,14 +77,14 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
         </Link>
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-semibold text-zinc-900">
-            {obs.placeName ?? `Observation du ${formattedDate}`}
+            {obs.placeName
+              ? `${obs.placeName} — ${freshness}`
+              : `Observation — ${freshness}`}
           </h1>
           <RiskBadge level={obs.criticality_level} />
         </div>
         <p className="mt-1 text-sm text-zinc-500">{formattedDate}</p>
-        <p className="mt-2 text-xs text-zinc-500">
-          {CRITICALITY_EXPLANATION}
-        </p>
+        <CriticalityInfo />
       </header>
 
       <div className="flex flex-col gap-6">

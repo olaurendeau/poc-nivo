@@ -80,6 +80,24 @@ const FilterIcon = () => (
   </svg>
 );
 
+const RefreshIcon = ({ spinning = false }: { spinning?: boolean }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+    className={spinning ? "animate-spin" : undefined}
+  >
+    <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 0 0 4.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 0 1-15.357-2m15.357 2H15" />
+  </svg>
+);
+
 type HomeMapViewProps = {
   observations: ObservationMapItem[];
 };
@@ -93,7 +111,8 @@ const FRESHNESS_VALUES_MS = [
 ] as const;
 const FRESHNESS_LABELS = ["—", "24h", "7j", "1 mois", "Tout"] as const;
 
-export const HomeMapView = ({ observations }: HomeMapViewProps) => {
+export const HomeMapView = ({ observations: initialObservations }: HomeMapViewProps) => {
+  const [observations, setObservations] = useState<ObservationMapItem[]>(initialObservations);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -104,7 +123,10 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
   const [filterRiskMin, setFilterRiskMin] = useState<CriticalityLevel>(1);
   const [filterRiskMax, setFilterRiskMax] = useState<CriticalityLevel>(5);
   const [filterFreshnessMinIndex, setFilterFreshnessMinIndex] = useState(0);
-  const [filterFreshnessMaxIndex, setFilterFreshnessMaxIndex] = useState(4);
+  /** Index 2 = 7 jours (valeur initiale du filtre). */
+  const [filterFreshnessMaxIndex, setFilterFreshnessMaxIndex] = useState(2);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [newObservationsCount, setNewObservationsCount] = useState<number | null>(null);
   const [longPressLocation, setLongPressLocation] = useState<{
     lat: number;
     lng: number;
@@ -144,6 +166,35 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
     setFilterFreshnessMaxIndex(high);
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    setNewObservationsCount(null);
+    try {
+      const res = await fetch("/api/observations");
+      if (!res.ok) return;
+      const fresh: ObservationMapItem[] = await res.json();
+      const previousIds = new Set(observations.map((o) => o.id));
+      const newCount = fresh.filter((o) => !previousIds.has(o.id)).length;
+      setObservations(fresh);
+      setNewObservationsCount(newCount);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [observations]);
+
+  useEffect(() => {
+    if (newObservationsCount === null) return;
+    const id = setTimeout(() => setNewObservationsCount(null), 5000);
+    return () => clearTimeout(id);
+  }, [newObservationsCount]);
+
+  const handleRefreshKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleRefresh();
+    }
+  }, [handleRefresh]);
+
   const filteredObservations = useMemo(() => {
     const minAgeMs = FRESHNESS_VALUES_MS[filterFreshnessMinIndex] ?? 0;
     const maxAgeMs = FRESHNESS_VALUES_MS[filterFreshnessMaxIndex] ?? Infinity;
@@ -152,8 +203,9 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
         obs.criticality_level >= filterRiskMin &&
         obs.criticality_level <= filterRiskMax;
       if (!withinRisk) return false;
-      const createdAt = obs.created_at ? new Date(obs.created_at).getTime() : 0;
-      const ageMs = Date.now() - createdAt;
+      const observedAt = obs.observed_at ?? obs.created_at;
+      const observedTs = observedAt ? new Date(observedAt).getTime() : 0;
+      const ageMs = Date.now() - observedTs;
       if (ageMs < minAgeMs) return false;
       if (maxAgeMs !== Infinity && ageMs > maxAgeMs) return false;
       return true;
@@ -250,7 +302,7 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
         className="absolute right-3 top-3 z-[500] flex flex-col items-end gap-2"
         onKeyDown={handleKeyDown}
       >
-        <div className="flex flex-row-reverse items-start gap-2">
+        <div className="relative flex flex-row-reverse items-start gap-2">
           <button
             type="button"
             onClick={handleToggleSettings}
@@ -264,7 +316,7 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
           {isSettingsOpen && (
             <div
               role="menu"
-              className="flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:min-w-[200px]"
+              className="absolute right-full top-0 mr-2 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:min-w-[200px]"
               aria-label="Menu paramètres"
             >
             <div
@@ -295,10 +347,31 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
                 </span>
               </div>
             </div>
+            <a
+              href="https://github.com/olaurendeau/poc-nivo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-200"
+              tabIndex={0}
+              aria-label="Voir le dépôt GitHub du projet"
+              role="menuitem"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden
+              >
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              GitHub
+            </a>
           </div>
           )}
         </div>
-        <div className="flex flex-row-reverse items-start gap-2">
+        <div className="relative flex flex-row-reverse items-start gap-2">
           <button
             type="button"
             onClick={handleToggleFilter}
@@ -312,7 +385,7 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
           {isFilterOpen && (
           <div
             role="menu"
-            className="flex w-[calc(100vw-5rem)] min-w-0 flex-col gap-4 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:w-80"
+            className="absolute right-full top-0 mr-2 flex w-[calc(100vw-5rem)] min-w-0 flex-col gap-4 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:w-80"
             aria-label="Filtre des observations"
           >
             <div
@@ -370,6 +443,30 @@ export const HomeMapView = ({ observations }: HomeMapViewProps) => {
             </p>
           </div>
           )}
+        </div>
+        <div className="flex flex-col items-end gap-1.5">
+          <button
+            type="button"
+            onClick={handleRefresh}
+            onKeyDown={handleRefreshKeyDown}
+            disabled={isRefreshing}
+            className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl bg-zinc-900 p-3 text-white shadow-lg transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 active:bg-zinc-800"
+            aria-label={isRefreshing ? "Rechargement en cours…" : "Recharger les observations"}
+            tabIndex={0}
+          >
+            <RefreshIcon spinning={isRefreshing} />
+          </button>
+          {newObservationsCount !== null ? (
+            <span
+              className="rounded-lg border border-zinc-200 bg-white/95 px-2 py-1.5 text-xs font-medium text-emerald-700 shadow-md backdrop-blur"
+              role="status"
+              aria-live="polite"
+            >
+              {newObservationsCount} nouvelle
+              {newObservationsCount !== 1 ? "s" : ""} obs récupérée
+              {newObservationsCount !== 1 ? "s" : ""}
+            </span>
+          ) : null}
         </div>
       </div>
       <Link

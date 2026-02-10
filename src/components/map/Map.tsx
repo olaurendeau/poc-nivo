@@ -1,14 +1,12 @@
 "use client";
 
-import {
-  CRITICALITY_EXPLANATION,
-  CRITICALITY_MARKER_COLORS,
-} from "@/lib/criticality";
+import { CRITICALITY_MARKER_COLORS } from "@/lib/criticality";
 import {
   getElevationRoundedLabel,
   getFreshnessLabel,
   ORIENTATION_ANGLES,
 } from "@/lib/marker-utils";
+import { CriticalityInfo } from "@/components/observation/CriticalityInfo";
 import { RiskBadge } from "@/components/observation/RiskBadge";
 import type { ObservationMapItem } from "@/types/observation";
 import "leaflet/dist/leaflet.css";
@@ -210,9 +208,9 @@ export const Map = ({
               <div className="mb-2">
                 <RiskBadge level={obs.criticality_level} size="sm" />
               </div>
-              <p className="mb-2 text-xs text-zinc-500">
-                {CRITICALITY_EXPLANATION}
-              </p>
+              <div className="mb-2">
+                <CriticalityInfo />
+              </div>
               {obs.place_name ? (
                 <p className="font-medium text-zinc-900">{obs.place_name}</p>
               ) : null}
