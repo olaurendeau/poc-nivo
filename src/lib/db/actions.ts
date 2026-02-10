@@ -1,7 +1,6 @@
 "use server";
 
 import { eq } from "drizzle-orm";
-import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import type {
   AvalancheDetails,
@@ -51,7 +50,8 @@ export const saveObservationAction = async (
         },
         observables: data.observables ?? [],
         photos: toDbPhotos(data.photos ?? []),
-        createdAt: observedAt,
+        observedAt,
+        comment: data.comment?.trim() || null,
       })
       .returning({ id: observationsTable.id });
 
@@ -88,7 +88,7 @@ export const deleteObservationAction = async (
     }
 
     revalidatePath("/");
-    redirect("/");
+    return { ok: true };
   } catch (err) {
     console.error("deleteObservationAction error:", err);
     return {

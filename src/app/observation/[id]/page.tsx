@@ -132,6 +132,17 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
           </section>
         ) : null}
 
+        {obs.comment ? (
+          <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-zinc-900">
+              Commentaire
+            </h2>
+            <p className="whitespace-pre-wrap text-sm text-zinc-700">
+              {obs.comment}
+            </p>
+          </section>
+        ) : null}
+
         <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           <h2 className="mb-3 text-lg font-semibold text-zinc-900">
             Actions

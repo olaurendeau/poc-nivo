@@ -16,6 +16,7 @@ import { LieuSection, type LieuState } from "@/components/observation/LieuSectio
 import { ObservablesSection } from "@/components/observation/ObservablesSection";
 import { OrientationRosace } from "@/components/observation/OrientationRosace";
 import { ProfilesTestsSection } from "@/components/observation/ProfilesTestsSection";
+import { CommentSection } from "@/components/observation/CommentSection";
 import { DateSection, formatDateTimeLocal } from "@/components/observation/DateSection";
 import { PhotosSection } from "@/components/observation/PhotosSection";
 
@@ -39,6 +40,7 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     observables: [],
     photos: [],
     observed_at: formatDateTimeLocal(new Date()),
+    comment: "",
   }));
   const [elevationLoading, setElevationLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,6 +109,10 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     setFormData((prev) => ({ ...prev, observed_at }));
   }, []);
 
+  const handleCommentChange = useCallback((comment: string) => {
+    setFormData((prev) => ({ ...prev, comment }));
+  }, []);
+
   const canSubmit =
     formData.latitude != null &&
     formData.longitude != null;
@@ -157,6 +163,10 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
         <DateSection
           value={formData.observed_at}
           onChange={handleObservedAtChange}
+        />
+        <CommentSection
+          value={formData.comment ?? ""}
+          onChange={handleCommentChange}
         />
       </div>
       <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-zinc-200 bg-zinc-50 p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">

@@ -8,6 +8,8 @@ export type ObservationMapItem = {
   latitude: number;
   longitude: number;
   place_name?: string | null;
+  /** Date de l'observation terrain (prioritaire pour le tri des marqueurs). */
+  observed_at?: string;
   created_at?: string;
   criticality_level: CriticalityLevel;
   elevation?: number | null;
@@ -101,4 +103,6 @@ export type ObservationFormData = {
   photos: ObservationFormPhoto[];
   /** Date/heure de l'observation (format datetime-local: YYYY-MM-DDTHH:mm). */
   observed_at: string;
+  /** Commentaire optionnel pour contextualiser l'observation. */
+  comment?: string;
 };

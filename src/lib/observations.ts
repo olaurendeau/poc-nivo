@@ -17,6 +17,7 @@ export const getObservationsForMap =
         latitude: observationsTable.latitude,
         longitude: observationsTable.longitude,
         placeName: observationsTable.placeName,
+        observedAt: observationsTable.observedAt,
         createdAt: observationsTable.createdAt,
         elevation: observationsTable.elevation,
         orientations: observationsTable.orientations,
@@ -36,6 +37,7 @@ export const getObservationsForMap =
         latitude: r.latitude,
         longitude: r.longitude,
         place_name: r.placeName ?? undefined,
+        observed_at: r.observedAt?.toISOString() ?? r.createdAt?.toISOString(),
         created_at: r.createdAt?.toISOString(),
         criticality_level,
         elevation: r.elevation ?? undefined,
@@ -54,6 +56,7 @@ export type ObservationDetail = {
   indices: { keys: string[]; details?: { avalanche?: unknown } };
   observables: string[];
   photos: { id: string; url: string; publicId: string; comment: string }[];
+  comment: string | null;
   createdAt: string;
   updatedAt: string;
   criticality_level: CriticalityLevel;
@@ -104,6 +107,7 @@ export const getObservationById = async (
       publicId: p.publicId,
       comment: p.comment ?? "",
     })),
+    comment: row.comment ?? null,
     createdAt: row.createdAt?.toISOString() ?? "",
     updatedAt: row.updatedAt?.toISOString() ?? "",
     criticality_level,

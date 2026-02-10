@@ -143,6 +143,16 @@ type MapProps = {
   markerScale?: number;
 };
 
+/** Trie par date d'observation croissante pour que les plus récents soient rendus en dernier (au-dessus des plus anciens). */
+const sortByObservedAtAsc = (
+  items: ObservationMapItem[]
+): ObservationMapItem[] =>
+  [...items].sort((a, b) => {
+    const tsA = (a.observed_at ?? a.created_at) ?? "";
+    const tsB = (b.observed_at ?? b.created_at) ?? "";
+    return new Date(tsA).getTime() - new Date(tsB).getTime();
+  });
+
 export const Map = ({
   observations,
   initialCenter,
@@ -152,6 +162,8 @@ export const Map = ({
     observations.length > 0
       ? [observations[0].latitude, observations[0].longitude]
       : initialCenter ?? DEFAULT_CENTER;
+
+  const sortedForZIndex = sortByObservedAtAsc(observations);
 
   return (
     <MapContainer
@@ -163,9 +175,11 @@ export const Map = ({
     >
       <TileLayer url={OPEN_TOPO_MAP_URL} />
       <MapFitBounds observations={observations} />
-      {observations.map((obs) => {
+      {sortedForZIndex.map((obs) => {
         const elevationLabel = getElevationRoundedLabel(obs.elevation);
-        const freshnessLabel = getFreshnessLabel(obs.created_at);
+        const freshnessLabel = getFreshnessLabel(
+          obs.observed_at ?? obs.created_at
+        );
         const icon = createMarkerIcon(
           CRITICALITY_MARKER_COLORS[obs.criticality_level],
           elevationLabel,

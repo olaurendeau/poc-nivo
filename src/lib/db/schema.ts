@@ -29,6 +29,7 @@ export type IndicesJson = {
 
 export const observationsTable = pgTable("observations", {
   id: uuid("id").primaryKey().defaultRandom(),
+  observedAt: timestamp("observed_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -47,6 +48,7 @@ export const observationsTable = pgTable("observations", {
   photos: jsonb("photos")
     .$type<ObservationPhotoJson[]>()
     .default([]),
+  comment: text("comment"),
 });
 
 export type Observation = typeof observationsTable.$inferSelect;

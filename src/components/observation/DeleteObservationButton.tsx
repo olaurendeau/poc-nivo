@@ -27,7 +27,7 @@ export const DeleteObservationButton = ({
     setError(null);
     const result = await deleteObservationAction(observationId);
     if (result.ok) {
-      router.push("/");
+      router.replace("/");
       return;
     }
     setError(result.error);

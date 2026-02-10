@@ -22,13 +22,16 @@ export const DateSection = ({ value, onChange }: DateSectionProps) => {
       <label className="block text-sm text-zinc-600">
         Date et heure de l&apos;observation
       </label>
-      <input
-        type="datetime-local"
-        value={value}
-        onChange={handleChange}
-        className="mt-2 flex min-h-[48px] w-full items-center rounded-xl border-2 border-zinc-300 bg-white px-4 py-3 text-base text-zinc-800 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
-        aria-label="Date et heure de l'observation"
-      />
+      <div className="mt-2 min-w-0 max-w-full overflow-hidden">
+        <input
+          type="datetime-local"
+          value={value}
+          onChange={handleChange}
+          className="flex min-h-[48px] w-full min-w-0 max-w-full items-center rounded-xl border-2 border-zinc-300 bg-white px-4 py-3 text-base text-zinc-800 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 [&::-webkit-datetime-edit]:max-w-full"
+          style={{ touchAction: "manipulation" }}
+          aria-label="Date et heure de l'observation"
+        />
+      </div>
     </section>
   );
 };
