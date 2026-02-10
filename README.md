@@ -2,6 +2,24 @@
 
 POC **Next.js** pour une application de **retours terrain nivologiques** : saisie et consultation d’indices, observables, profils et tests de stabilité, utilisable par amateurs, professionnels et nivologues. Référence méthodologique : **Winter Journal** (Ortovox & Ben Reuters). Cible finale envisagée : **React Native** pour un usage hors ligne sur le terrain.
 
+**→ Tester l'app : [https://poc-nivo.vercel.app/](https://poc-nivo.vercel.app/)**
+
+---
+
+## Aperçu
+
+### Carte des observations
+
+La carte affiche les observations récentes avec leur localisation, altitude et ancienneté (ex. « 3 min », « 2 j »).
+
+![Carte des observations](docs/screenshots/carte-observations.png)
+
+### Nouvelle observation
+
+Saisie d'une observation : choix du lieu (carte ou position GPS), orientation de la pente, puis enregistrement progressif des indices, observables et profils.
+
+![Nouvelle observation](docs/screenshots/nouvelle-observation.png)
+
 ---
 
 ## Contexte
@@ -21,17 +39,18 @@ Il n’existe pas aujourd’hui d’application française dédiée aux retours 
 
 | Écran | Rôle |
 |-------|------|
-| **Carte** | Affiche les observations récentes aux coordonnées de chaque point. |
-| **Saisie d’observation** | Création d’une observation avec enregistrement progressif. |
+| **Carte** | Affiche les observations récentes aux coordonnées de chaque point (altitude, ancienneté). |
+| **Saisie d’observation** | Création d’une observation avec enregistrement progressif (lieu, orientation, indices, etc.). |
 | **Consultation** | Détail et lecture d’une observation existante. |
 
 ### Formulaire de saisie (ordre logique)
 
-1. **Lieu** — coordonnées / position  
-2. **Photos**  
-3. **Indices** — Avalanche, Fissure, Woumpf  
-4. **Observables** — Transport, Surcharge, Humidification  
-5. **Profil & tests** — CT (Compression Test), ECT (Extended Column Test)  
+1. **Lieu** — coordonnées / position (carte ou GPS)
+2. **Orientation** — une ou plusieurs expositions de la pente
+3. **Photos**
+4. **Indices** — Avalanche, Fissure, Woumpf
+5. **Observables** — Transport, Surcharge, Humidification
+6. **Profil & tests** — CT (Compression Test), ECT (Extended Column Test)  
 
 ---
 
