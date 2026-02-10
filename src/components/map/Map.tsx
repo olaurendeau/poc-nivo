@@ -42,13 +42,14 @@ const MapFitBounds = ({ observations }: MapFitBoundsProps) => {
 
 type MapProps = {
   observations: ObservationMapItem[];
+  initialCenter?: [number, number];
 };
 
-export const Map = ({ observations }: MapProps) => {
+export const Map = ({ observations, initialCenter }: MapProps) => {
   const center: [number, number] =
     observations.length > 0
       ? [observations[0].latitude, observations[0].longitude]
-      : DEFAULT_CENTER;
+      : initialCenter ?? DEFAULT_CENTER;
 
   return (
     <MapContainer

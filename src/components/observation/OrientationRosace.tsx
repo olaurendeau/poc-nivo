@@ -15,9 +15,9 @@ const ORIENTATION_ANGLE: Record<OrientationKey, number> = {
   E: 0,
   SE: 315,
   S: 270,
-  SW: 225,
-  W: 180,
-  NW: 135,
+  SO: 225,
+  O: 180,
+  NO: 135,
 };
 
 const angleToPosition = (angleDeg: number) => {

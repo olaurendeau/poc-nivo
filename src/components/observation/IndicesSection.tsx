@@ -76,7 +76,7 @@ export const IndicesSection = ({
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-3 text-lg font-semibold text-zinc-900">Indices</h2>
+      <h2 className="mb-3 text-lg font-semibold text-zinc-900">Indices d'instabilité</h2>
       <ul className="flex flex-col gap-2" role="group" aria-label="Indices observés">
         {INDICE_KEYS.map((key) => {
           const isSelected = value.includes(key);

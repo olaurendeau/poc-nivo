@@ -19,7 +19,7 @@ export type ObservableKey = (typeof OBSERVABLE_KEYS)[number];
 
 /** Libellés pour l'UI. */
 export const INDICE_LABELS: Record<IndiceKey, string> = {
-  avalanche: "Avalanche",
+  avalanche: "Avalanche récente",
   fissure: "Fissures qui propagent",
   woumpf: "Woumpf",
 };
@@ -58,9 +58,9 @@ export const ORIENTATION_KEYS = [
   "E",
   "SE",
   "S",
-  "SW",
-  "W",
-  "NW",
+  "SO",
+  "O",
+  "NO",
 ] as const;
 export type OrientationKey = (typeof ORIENTATION_KEYS)[number];
 
@@ -70,9 +70,9 @@ export const ORIENTATION_LABELS: Record<OrientationKey, string> = {
   E: "Est",
   SE: "Sud-Est",
   S: "Sud",
-  SW: "Sud-Ouest",
-  W: "Ouest",
-  NW: "Nord-Ouest",
+  SO: "Sud-Ouest",
+  O: "Ouest",
+  NO: "Nord-Ouest",
 };
 
 /** Données de saisie d'une observation (formulaire). */

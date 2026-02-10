@@ -47,7 +47,8 @@ const MapCenterToPosition = ({ position }: MapCenterToPositionProps) => {
   const map = useMap();
   useEffect(() => {
     if (!position) return;
-    map.flyTo(position, 14, { duration: 0.3 });
+    // Recentrer sans modifier le niveau de zoom courant.
+    map.flyTo(position, map.getZoom(), { duration: 0.3 });
   }, [map, position]);
   return null;
 };
@@ -74,13 +75,14 @@ export const LieuMapPicker = ({ position, onSelect }: LieuMapPickerProps) => {
   return (
     <div
       className="overflow-hidden bg-zinc-100"
-      style={{ height: 200 }}
+      style={{ height: 260 }}
     >
       <MapContainer
         center={center}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         scrollWheelZoom
+        zoomControl={false}
         attributionControl={false}
       >
         <TileLayer url={OPEN_TOPO_MAP_URL} />

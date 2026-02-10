@@ -14,21 +14,28 @@ import { IndicesSection } from "@/components/observation/IndicesSection";
 import { LieuSection, type LieuState } from "@/components/observation/LieuSection";
 import { ObservablesSection } from "@/components/observation/ObservablesSection";
 import { OrientationRosace } from "@/components/observation/OrientationRosace";
+import { ProfilesTestsSection } from "@/components/observation/ProfilesTestsSection";
+import { PhotosSection } from "@/components/observation/PhotosSection";
 
-const initialFormData: ObservationFormData = {
-  latitude: null,
-  longitude: null,
-  place_name: "",
-  elevation: null,
-  orientations: [],
-  indices: [],
-  indiceDetails: {},
-  observables: [],
+type ObservationFormProps = {
+  initialLocation?: {
+    latitude: number;
+    longitude: number;
+  } | null;
 };
 
-export const ObservationForm = () => {
+export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
   const router = useRouter();
-  const [formData, setFormData] = useState<ObservationFormData>(initialFormData);
+  const [formData, setFormData] = useState<ObservationFormData>(() => ({
+    latitude: initialLocation?.latitude ?? null,
+    longitude: initialLocation?.longitude ?? null,
+    place_name: "",
+    elevation: null,
+    orientations: [],
+    indices: [],
+    indiceDetails: {},
+    observables: [],
+  }));
   const [elevationLoading, setElevationLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -123,8 +130,10 @@ export const ObservationForm = () => {
           value={formData.observables}
           onChange={handleObservablesChange}
         />
+        <ProfilesTestsSection />
+        <PhotosSection />
       </div>
-      <div className="fixed bottom-1 left-0 right-0 z-[1000] border-t border-zinc-200 bg-zinc-50 p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-zinc-200 bg-zinc-50 p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         {!canSubmit ? (
           <p className="mb-2 text-center text-sm text-zinc-500">
             Choisissez un lieu sur la carte pour permettre l&apos;enregistrement.
