@@ -7,6 +7,7 @@ import { getCurrentPosition } from "@/lib/geo";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const MARKER_SCALE_MIN = 0.5;
@@ -112,6 +113,7 @@ const FRESHNESS_VALUES_MS = [
 const FRESHNESS_LABELS = ["—", "24h", "7j", "1 mois", "Tout"] as const;
 
 export const HomeMapView = ({ observations: initialObservations }: HomeMapViewProps) => {
+  const router = useRouter();
   const [observations, setObservations] = useState<ObservationMapItem[]>(initialObservations);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
@@ -132,6 +134,14 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
     lng: number;
   } | null>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setObservations(initialObservations);
+  }, [initialObservations]);
+
+  useEffect(() => {
+    router.refresh();
+  }, [router]);
 
   const handleMarkerScaleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

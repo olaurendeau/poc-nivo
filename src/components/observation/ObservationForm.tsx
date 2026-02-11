@@ -124,7 +124,13 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
       setIsSubmitting(true);
       setSubmitError(null);
 
-      const result = await saveObservationAction(formData);
+      const preparedData: ObservationFormData = {
+        ...formData,
+        observed_at: formData.observed_at
+          ? new Date(formData.observed_at).toISOString()
+          : new Date().toISOString(),
+      };
+      const result = await saveObservationAction(preparedData);
 
       if (result.ok) {
         router.push(`/observation/${result.id}`);
