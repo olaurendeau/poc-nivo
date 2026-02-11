@@ -2,9 +2,17 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { MapContainer, Marker, TileLayer } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, Marker } from "react-leaflet";
+import { MapLayersMenu } from "@/components/map/MapLayersMenu";
+import { MapTileLayers } from "@/components/map/MapTileLayers";
+import {
+  getStoredOverlays,
+  getStoredTileLayer,
+  type MapBackgroundId,
+  type MapOverlayId,
+} from "@/lib/map-layers";
 
-const OPEN_TOPO_MAP_URL = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
 const DEFAULT_ZOOM = 14;
 
 const markerIcon = L.icon({
@@ -25,21 +33,40 @@ type ObservationDetailMapProps = {
 export const ObservationDetailMap = ({
   latitude,
   longitude,
-}: ObservationDetailMapProps) => (
-  <div
-    className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 shadow-sm"
-    style={{ height: 200 }}
-    aria-label="Carte de localisation de l'observation"
-  >
-    <MapContainer
-      center={[latitude, longitude]}
-      zoom={DEFAULT_ZOOM}
-      className="h-full w-full"
-    scrollWheelZoom
-    attributionControl={false}
+}: ObservationDetailMapProps) => {
+  const [tileLayer, setTileLayer] = useState<MapBackgroundId>("topo");
+  const [activeOverlays, setActiveOverlays] = useState<MapOverlayId[]>([]);
+
+  useEffect(() => {
+    setTileLayer(getStoredTileLayer());
+    setActiveOverlays(getStoredOverlays());
+  }, []);
+
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100 shadow-sm"
+      style={{ height: 200 }}
+      aria-label="Carte de localisation de l'observation"
     >
-      <TileLayer url={OPEN_TOPO_MAP_URL} />
-      <Marker position={[latitude, longitude]} icon={markerIcon} />
-    </MapContainer>
-  </div>
-);
+      <MapContainer
+        center={[latitude, longitude]}
+        zoom={DEFAULT_ZOOM}
+        className="h-full w-full"
+        scrollWheelZoom
+        attributionControl={false}
+      >
+        <MapTileLayers tileLayer={tileLayer} activeOverlays={activeOverlays} />
+        <Marker position={[latitude, longitude]} icon={markerIcon} />
+      </MapContainer>
+      <div className="absolute right-2 top-2 z-[500]">
+        <MapLayersMenu
+          tileLayer={tileLayer}
+          activeOverlays={activeOverlays}
+          onTileLayerChange={setTileLayer}
+          onOverlaysChange={setActiveOverlays}
+          usePortal
+        />
+      </div>
+    </div>
+  );
+};

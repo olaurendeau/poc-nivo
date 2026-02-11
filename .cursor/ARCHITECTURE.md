@@ -88,7 +88,7 @@ src/
 | Sujet | Choix |
 |-------|--------|
 | **ORM / DB** | **Drizzle** + Neon PostgreSQL |
-| **Carte** | **OpenTopoMap** (fond topo). Leaflet ou MapLibre pour le rendu. |
+| **Carte** | **Leaflet** + react-leaflet. Fonds : OpenTopoMap (topo), ESRI World Imagery (satellite). Calques superposés configurables (pistes, pentes IGN). Voir `lib/map-layers.ts`. |
 | **Photos** | **Cloudinary** (upload Server Action, URL en DB) |
 | **Auth** | **Aucune** — soumissions anonymes |
 | **Sauvegarde progressive** | **Server Actions** par section ; **lieu** : UX « un tap = ma position » (§ 3.1) |
@@ -113,4 +113,13 @@ src/
 - **Composants** : PascalCase ; un composant par fichier dans `components/`.
 - **Server Actions** : dans `lib/` ou colocalisées dans le module concerné ; nom en `action...` ou suffixe `Action`.
 - **Types** : dans `types/`, réexportés si besoin depuis `lib/`.
-- **Env** : `DATABASE_URL` (Neon) ; `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (ou variables fournies par le SDK Cloudinary) pour les photos.
+- **Env** : `DATABASE_URL` (Neon) ; `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (ou variables fournies par le SDK Cloudinary) pour les photos ; `NEXT_PUBLIC_IGN_API_KEY` (optionnel) pour le calque pentes IGN.
+
+## 10. Fonds et calques carte
+
+Configuration centralisée dans `lib/map-layers.ts` :
+
+- **Fonds** : Topo (OpenTopoMap), Satellite (ESRI World Imagery).
+- **Calques superposés** : Pistes de ski (OpenSnowMap), Pentes (IGN Géoportail, nécessite `NEXT_PUBLIC_IGN_API_KEY`).
+
+Pour ajouter un fond ou un calque : étendre `MAP_BACKGROUND_IDS` / `MAP_OVERLAY_IDS` et les objets correspondants dans `map-layers.ts`, puis mettre à jour le menu dans `HomeMapView`.

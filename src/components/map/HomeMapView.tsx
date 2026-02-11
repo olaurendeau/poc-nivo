@@ -5,6 +5,18 @@ import type { CriticalityLevel } from "@/lib/criticality";
 import { CRITICALITY_LABELS } from "@/lib/criticality";
 import { getCurrentPosition } from "@/lib/geo";
 import { RangeSlider } from "@/components/ui/RangeSlider";
+import type { MapBackgroundId, MapOverlayId } from "@/components/map/Map";
+import {
+  MAP_BACKGROUNDS,
+  MAP_OVERLAYS,
+  MAP_OVERLAY_IDS,
+  getStoredOverlays,
+  getStoredTileLayer,
+  isPentesOverlayAvailable,
+  saveOverlays,
+  saveTileLayer,
+} from "@/lib/map-layers";
+import { Layers } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -120,8 +132,11 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
     longitude: number;
   } | null>(null);
   const [markerScale, setMarkerScale] = useState(MARKER_SCALE_DEFAULT);
+  const [tileLayer, setTileLayer] = useState<MapBackgroundId>("topo");
+  const [activeOverlays, setActiveOverlays] = useState<MapOverlayId[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isLayersOpen, setIsLayersOpen] = useState(false);
   const [filterRiskMin, setFilterRiskMin] = useState<CriticalityLevel>(1);
   const [filterRiskMax, setFilterRiskMax] = useState<CriticalityLevel>(5);
   const [filterFreshnessMinIndex, setFilterFreshnessMinIndex] = useState(0);
@@ -158,12 +173,20 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
 
   const handleToggleSettings = useCallback(() => {
     setIsFilterOpen(false);
+    setIsLayersOpen(false);
     setIsSettingsOpen((prev) => !prev);
   }, []);
 
   const handleToggleFilter = useCallback(() => {
     setIsSettingsOpen(false);
+    setIsLayersOpen(false);
     setIsFilterOpen((prev) => !prev);
+  }, []);
+
+  const handleToggleLayers = useCallback(() => {
+    setIsSettingsOpen(false);
+    setIsFilterOpen(false);
+    setIsLayersOpen((prev) => !prev);
   }, []);
 
   const handleFilterRiskChange = useCallback((low: number, high: number) => {
@@ -233,6 +256,7 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
       if (e.key === "Escape") {
         setIsSettingsOpen(false);
         setIsFilterOpen(false);
+        setIsLayersOpen(false);
         setLongPressLocation(null);
       }
     },
@@ -249,7 +273,25 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
 
   useEffect(() => {
     setMarkerScale(getStoredMarkerScale());
+    setTileLayer(getStoredTileLayer());
+    setActiveOverlays(getStoredOverlays());
   }, []);
+
+  const handleBackgroundChange = useCallback((id: MapBackgroundId) => {
+    saveTileLayer(id);
+    setTileLayer(id);
+  }, []);
+
+  const handleOverlayToggle = useCallback(
+    (id: MapOverlayId) => {
+      const next = activeOverlays.includes(id)
+        ? activeOverlays.filter((o) => o !== id)
+        : [...activeOverlays, id];
+      saveOverlays(next);
+      setActiveOverlays(next);
+    },
+    [activeOverlays]
+  );
 
   useEffect(() => {
     getCurrentPosition()
@@ -274,7 +316,7 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
   }, [longPressLocation, handleDismissLongPress]);
 
   useEffect(() => {
-    if (!isSettingsOpen && !isFilterOpen) return;
+    if (!isSettingsOpen && !isFilterOpen && !isLayersOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (
         controlsRef.current != null &&
@@ -282,11 +324,12 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
       ) {
         setIsSettingsOpen(false);
         setIsFilterOpen(false);
+        setIsLayersOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isSettingsOpen, isFilterOpen]);
+  }, [isSettingsOpen, isFilterOpen, isLayersOpen]);
 
   const newObservationHref =
     userLocation != null
@@ -304,6 +347,8 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
               : undefined
           }
           markerScale={markerScale}
+          tileLayer={tileLayer}
+          activeOverlays={activeOverlays}
           onLongPress={handleMapLongPress}
         />
       </div>
@@ -452,6 +497,112 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
               {filteredObservations.length !== 1 ? "s" : ""}
             </p>
           </div>
+          )}
+        </div>
+        <div className="relative flex flex-row-reverse items-start gap-2">
+          <button
+            type="button"
+            onClick={handleToggleLayers}
+            className="flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl bg-zinc-900 p-3 text-white shadow-lg transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-800"
+            aria-expanded={isLayersOpen}
+            aria-haspopup="menu"
+            aria-label="Fond de carte et calques"
+            tabIndex={0}
+          >
+            <Layers size={24} aria-hidden />
+          </button>
+          {isLayersOpen && (
+            <div
+              role="menu"
+              className="absolute right-full top-0 mr-2 flex w-[calc(100vw-5rem)] min-w-0 flex-col gap-4 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:w-72"
+              aria-label="Fond de carte et calques"
+            >
+              <div
+                role="group"
+                aria-label="Fond de carte"
+                className="flex flex-col gap-2"
+              >
+                <span className="text-sm font-medium text-zinc-700">
+                  Fond de carte
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {(["topo", "satellite"] as const).map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => handleBackgroundChange(id)}
+                      className={`min-h-[48px] flex items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 ${
+                        tileLayer === id
+                          ? "bg-zinc-900 text-white"
+                          : "bg-zinc-50 text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200"
+                      }`}
+                      aria-pressed={tileLayer === id}
+                      aria-label={`Fond : ${MAP_BACKGROUNDS[id].label}`}
+                      tabIndex={0}
+                    >
+                      {MAP_BACKGROUNDS[id].label}
+                      {tileLayer === id ? (
+                        <span className="text-emerald-400" aria-hidden>
+                          ✓
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div
+                role="group"
+                aria-label="Calques superposés"
+                className="flex flex-col gap-2"
+              >
+                <span className="text-sm font-medium text-zinc-700">Calques</span>
+                <div className="flex flex-col gap-1.5">
+                  {MAP_OVERLAY_IDS.map((id) => {
+                    const overlay = MAP_OVERLAYS[id];
+                    const isPentes = id === "pentes";
+                    const isAvailable = isPentes
+                      ? isPentesOverlayAvailable()
+                      : true;
+                    const isChecked = activeOverlays.includes(id);
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => isAvailable && handleOverlayToggle(id)}
+                        disabled={!isAvailable}
+                        className={`min-h-[48px] flex min-w-0 items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 ${
+                          isAvailable
+                            ? isChecked
+                              ? "bg-zinc-900 text-white"
+                              : "bg-zinc-50 text-zinc-700 hover:bg-zinc-100 active:bg-zinc-200"
+                            : "cursor-not-allowed bg-zinc-100 text-zinc-400"
+                        }`}
+                        aria-pressed={isChecked}
+                        aria-label={`${overlay.label}${!isAvailable ? " (non disponible)" : ""}`}
+                        aria-disabled={!isAvailable}
+                        tabIndex={isAvailable ? 0 : -1}
+                      >
+                        {overlay.label}
+                        {isAvailable ? (
+                          <span
+                            className={`min-w-[1.5rem] text-right ${
+                              isChecked ? "text-emerald-400" : "text-zinc-400"
+                            }`}
+                            aria-hidden
+                          >
+                            {isChecked ? "✓" : "—"}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-zinc-500">
+                            Clé IGN requise
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
           )}
         </div>
         <div className="flex flex-col items-end gap-1.5">

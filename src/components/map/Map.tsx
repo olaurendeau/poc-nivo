@@ -21,8 +21,13 @@ import {
   useMap,
 } from "react-leaflet";
 import { MapLongPressHandler } from "@/components/map/MapLongPressHandler";
-
-const OPEN_TOPO_MAP_URL = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
+import {
+  MAP_BACKGROUNDS,
+  MAP_OVERLAYS,
+  getPentesOverlayUrl,
+  type MapBackgroundId,
+  type MapOverlayId,
+} from "@/lib/map-layers";
 
 const BASE_MARKER_SIZE = 36;
 const BASE_DIAMOND_SIZE = 7;
@@ -142,11 +147,15 @@ const MapFitBounds = ({ observations }: MapFitBoundsProps) => {
   return null;
 };
 
+export type { MapBackgroundId, MapOverlayId };
+
 type MapProps = {
   observations: ObservationMapItem[];
   initialCenter?: [number, number];
   markerScale?: number;
   onLongPress?: (lat: number, lng: number) => void;
+  tileLayer?: MapBackgroundId;
+  activeOverlays?: MapOverlayId[];
 };
 
 /** Trie par date d'observation croissante pour que les plus récents soient rendus en dernier (au-dessus des plus anciens). */
@@ -164,6 +173,8 @@ export const Map = ({
   initialCenter,
   markerScale = 1,
   onLongPress,
+  tileLayer = "topo",
+  activeOverlays = [],
 }: MapProps) => {
   const center: [number, number] =
     observations.length > 0
@@ -180,7 +191,24 @@ export const Map = ({
       scrollWheelZoom
       attributionControl={false}
     >
-      <TileLayer url={OPEN_TOPO_MAP_URL} />
+      <TileLayer url={MAP_BACKGROUNDS[tileLayer].url} />
+      {activeOverlays.map((id) => {
+        if (id === "pentes") {
+          const url = getPentesOverlayUrl();
+          if (!url) return null;
+          return <TileLayer key={id} url={url} opacity={0.7} zIndex={400} />;
+        }
+        const overlay = MAP_OVERLAYS[id];
+        if (!overlay?.url) return null;
+        return (
+          <TileLayer
+            key={id}
+            url={overlay.url}
+            opacity={0.8}
+            zIndex={400}
+          />
+        );
+      })}
       {onLongPress != null ? (
         <MapLongPressHandler onLongPress={onLongPress} />
       ) : null}

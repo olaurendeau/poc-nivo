@@ -2,16 +2,21 @@
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   MapContainer,
   Marker,
-  TileLayer,
   useMap,
   useMapEvents,
 } from "react-leaflet";
-
-const OPEN_TOPO_MAP_URL = "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png";
+import { MapLayersMenu } from "@/components/map/MapLayersMenu";
+import { MapTileLayers } from "@/components/map/MapTileLayers";
+import {
+  getStoredOverlays,
+  getStoredTileLayer,
+  type MapBackgroundId,
+  type MapOverlayId,
+} from "@/lib/map-layers";
 
 const markerIcon = L.icon({
   iconUrl: "/marker-icon.png",
@@ -59,9 +64,17 @@ type LieuMapPickerProps = {
 };
 
 export const LieuMapPicker = ({ position, onSelect }: LieuMapPickerProps) => {
+  const [tileLayer, setTileLayer] = useState<MapBackgroundId>("topo");
+  const [activeOverlays, setActiveOverlays] = useState<MapOverlayId[]>([]);
+
   const center: [number, number] = position
     ? [position.latitude, position.longitude]
     : DEFAULT_CENTER;
+
+  useEffect(() => {
+    setTileLayer(getStoredTileLayer());
+    setActiveOverlays(getStoredOverlays());
+  }, []);
 
   const handleDragEnd = useCallback(
     (e: L.LeafletEvent) => {
@@ -74,7 +87,7 @@ export const LieuMapPicker = ({ position, onSelect }: LieuMapPickerProps) => {
 
   return (
     <div
-      className="overflow-hidden bg-zinc-100"
+      className="relative overflow-hidden bg-zinc-100"
       style={{ height: 260 }}
     >
       <MapContainer
@@ -85,7 +98,7 @@ export const LieuMapPicker = ({ position, onSelect }: LieuMapPickerProps) => {
         zoomControl={false}
         attributionControl={false}
       >
-        <TileLayer url={OPEN_TOPO_MAP_URL} />
+        <MapTileLayers tileLayer={tileLayer} activeOverlays={activeOverlays} />
         <MapClickHandler onSelect={onSelect} />
         <MapCenterToPosition
           position={
@@ -101,6 +114,15 @@ export const LieuMapPicker = ({ position, onSelect }: LieuMapPickerProps) => {
           />
         ) : null}
       </MapContainer>
+      <div className="absolute right-2 top-16 z-[500]">
+        <MapLayersMenu
+          tileLayer={tileLayer}
+          activeOverlays={activeOverlays}
+          onTileLayerChange={setTileLayer}
+          onOverlaysChange={setActiveOverlays}
+          usePortal
+        />
+      </div>
     </div>
   );
 };
