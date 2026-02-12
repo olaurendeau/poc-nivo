@@ -34,15 +34,23 @@ export const getObservationsForMap =
 
     return rows.map((r) => {
       const indicesData = r.indices as
-        | { keys?: string[]; details?: { avalanche?: { tailles?: number[] } } }
+        | {
+            keys?: string[];
+            details?: {
+              avalanche?: { tailles?: number[]; declenchementARemote?: boolean };
+            };
+          }
         | null;
       const indices = indicesData?.keys ?? [];
       const observables = (r.observables as string[] | null) ?? [];
       const avalancheTailles = indicesData?.details?.avalanche?.tailles;
+      const declenchementARemote =
+        indicesData?.details?.avalanche?.declenchementARemote;
       const baseCriticality = computeCriticality({
         indices,
         observables,
         avalancheTailles,
+        declenchementARemote,
       });
       const observedAt =
         r.observedAt ?? r.createdAt ?? new Date().toISOString();
@@ -104,13 +112,16 @@ export const getObservationById = async (
 
   const indicesData = (row.indices ?? { keys: [] }) as {
     keys: string[];
-    details?: { avalanche?: { tailles?: number[] } };
+    details?: {
+      avalanche?: { tailles?: number[]; declenchementARemote?: boolean };
+    };
   };
   const observables = (row.observables ?? []) as string[];
   const baseCriticality = computeCriticality({
     indices: indicesData.keys,
     observables,
     avalancheTailles: indicesData.details?.avalanche?.tailles,
+    declenchementARemote: indicesData.details?.avalanche?.declenchementARemote,
   });
   const observedAt = row.observedAt ?? row.createdAt ?? new Date();
   const criticality_level = applyCriticalityTimeAttenuation(

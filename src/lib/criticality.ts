@@ -38,7 +38,7 @@ export const CRITICALITY_MARKER_COLORS: Record<CriticalityLevel, string> = {
 
 /** Message court sur la criticité (sans détail du calcul). */
 export const CRITICALITY_EXPLANATION =
-  "Indices d'instabilité observés sur le terrain.";
+  "Indices d'instabilité observés sur le terrain. Déclenchement à distance = risque fort à très fort.";
 
 /** Nombre de jours pour perdre un palier de criticité. */
 export const CRITICALITY_ATTENUATION_DAYS = 3;
@@ -48,33 +48,44 @@ type ObservationInput = {
   observables: string[];
   /** Tailles avalanche (1-5) si indice avalanche présent. Prioritaire pour la criticité. */
   avalancheTailles?: number[];
+  /** Déclenchement à distance : signe typique de risque fort à très fort (niveau min. 4). */
+  declenchementARemote?: boolean;
 };
 
 /**
  * Calcule le niveau de criticité (1-5) à partir des indices et observables.
  * Si avalanche avec tailles : 1-3 → Marqué (3), 4 → Fort (4), 5 → Très fort (5).
+ * Déclenchement à distance : signe typique de risque fort à très fort → min. Fort (4).
  * Sinon : indices poids 2, observables poids 1. Score 0 → 1, 1-2 → 2, 3-4 → 3, 5-6 → 4, 7+ → 5.
  */
 export const computeCriticality = (input: ObservationInput): CriticalityLevel => {
   const hasAvalanche = input.indices?.includes("avalanche") ?? false;
   const tailles = input.avalancheTailles ?? [];
+  const declenchementARemote = input.declenchementARemote ?? false;
+
+  let level: CriticalityLevel;
 
   if (hasAvalanche && tailles.length > 0) {
     const maxTaille = Math.max(...tailles);
-    if (maxTaille <= 3) return 3; // Marqué (tailles 1, 2, 3)
-    if (maxTaille === 4) return 4; // Fort
-    return 5; // Très fort (taille 5)
+    if (maxTaille <= 3) level = 3; // Marqué (tailles 1, 2, 3)
+    else if (maxTaille === 4) level = 4; // Fort
+    else level = 5; // Très fort (taille 5)
+  } else {
+    const indicesCount = input.indices?.length ?? 0;
+    const observablesCount = input.observables?.length ?? 0;
+    const score = indicesCount * 2 + observablesCount;
+
+    if (score === 0) level = 1;
+    else if (score <= 2) level = 2;
+    else if (score <= 4) level = 3;
+    else if (score <= 6) level = 4;
+    else level = 5;
   }
 
-  const indicesCount = input.indices?.length ?? 0;
-  const observablesCount = input.observables?.length ?? 0;
-  const score = indicesCount * 2 + observablesCount;
-
-  if (score === 0) return 1;
-  if (score <= 2) return 2;
-  if (score <= 4) return 3;
-  if (score <= 6) return 4;
-  return 5;
+  if (declenchementARemote && hasAvalanche && level < 4) {
+    return 4; // Signe typique de risque fort à très fort
+  }
+  return level;
 };
 
 /**

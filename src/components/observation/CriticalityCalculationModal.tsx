@@ -18,6 +18,10 @@ const CALCULATION_LINES = [
     detail: "1–3 → Marqué, 4 → Fort, 5 → Très fort",
   },
   {
+    title: "Déclenchement à distance",
+    detail: "Signe typique de risque fort à très fort → niveau minimum Fort (4)",
+  },
+  {
     title: "Sans avalanche",
     detail: "score = indices×2 + observables → 0→Faible, 1–2→Limité, 3–4→Marqué, 5–6→Fort, 7+→Très fort",
   },

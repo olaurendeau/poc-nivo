@@ -40,6 +40,8 @@ export type AvalancheDetails = {
   type?: AvalancheType;
   cassure?: AvalancheCassure;
   tailles?: AvalancheTaille[];
+  /** Déclenchement à distance (avalanche déclenchée depuis une zone éloignée). */
+  declenchementARemote?: boolean;
 };
 
 export const AVALANCHE_TYPE_LABELS: Record<AvalancheType, string> = {

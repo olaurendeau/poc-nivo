@@ -12,7 +12,12 @@ const INDICE_ICONS: Record<IndiceKey, React.ComponentType<{ className?: string }
 
 type IndicesDisplayProps = {
   indices: IndiceKey[];
-  avalancheDetails?: { type?: string; cassure?: string; tailles?: number[] };
+  avalancheDetails?: {
+    type?: string;
+    cassure?: string;
+    tailles?: number[];
+    declenchementARemote?: boolean;
+  };
 };
 
 export const IndicesDisplay = ({
@@ -56,7 +61,12 @@ const AVALANCHE_CASSURE_LABELS: Record<string, string> = {
 };
 
 type AvalancheDetailsRowProps = {
-  details: { type?: string; cassure?: string; tailles?: number[] };
+  details: {
+    type?: string;
+    cassure?: string;
+    tailles?: number[];
+    declenchementARemote?: boolean;
+  };
 };
 
 const AvalancheDetailsRow = ({ details }: AvalancheDetailsRowProps) => {
@@ -66,6 +76,9 @@ const AvalancheDetailsRow = ({ details }: AvalancheDetailsRowProps) => {
   }
   if (details.cassure) {
     parts.push(AVALANCHE_CASSURE_LABELS[details.cassure] ?? details.cassure);
+  }
+  if (details.declenchementARemote) {
+    parts.push("Déclenchement à distance");
   }
   if (details.tailles?.length) {
     parts.push(`Taille(s) : ${details.tailles.join(", ")}`);

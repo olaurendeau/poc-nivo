@@ -61,7 +61,7 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
   const freshness = formatFreshness(observedAt);
 
   const avalancheDetails = obs.indices.details?.avalanche as
-    | { type?: string; cassure?: string; tailles?: number[] }
+    | { type?: string; cassure?: string; tailles?: number[]; declenchementARemote?: boolean }
     | undefined;
 
   return (

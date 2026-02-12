@@ -18,6 +18,7 @@ const formatAvalancheSummary = (d: AvalancheDetails): string => {
   const parts: string[] = [];
   if (d.type) parts.push(AVALANCHE_TYPE_LABELS[d.type]);
   if (d.cassure) parts.push(d.cassure === "lineaire" ? "Linéaire" : "Ponctuelle");
+  if (d.declenchementARemote) parts.push("À distance");
   if (d.tailles?.length) parts.push(d.tailles.join(", "));
   return parts.join(" · ");
 };
@@ -55,8 +56,10 @@ export const IndicesSection = ({
 
   const handleToggle = (key: IndiceKey) => {
     const willBeSelected = !value.includes(key);
-    if (key === "avalanche" && willBeSelected) {
-      onChange(toggleIndice(value, key));
+    if (key === "avalanche") {
+      if (willBeSelected) {
+        onChange(toggleIndice(value, key));
+      }
       setAvalancheModalOpen(true);
     } else {
       onChange(toggleIndice(value, key));
@@ -123,6 +126,10 @@ export const IndicesSection = ({
         value={avalancheDetails}
         onChange={onAvalancheDetailsChange ?? (() => {})}
         onClose={handleCloseAvalancheModal}
+        onRemove={() => {
+          onChange(toggleIndice(value, "avalanche"));
+          setAvalancheModalOpen(false);
+        }}
       />
     </section>
   );
