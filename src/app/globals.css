@@ -26,7 +26,7 @@ body {
 }
 
 /* Marqueurs carte : masquer le fond par défaut de Leaflet pour les icônes custom */
-.leaflet-marker-icon.criticality-marker {
+.leaflet-marker-icon.observation-marker {
   background: none !important;
   border: none !important;
 }

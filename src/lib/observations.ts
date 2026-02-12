@@ -1,9 +1,4 @@
 import { desc, eq } from "drizzle-orm";
-import {
-  applyCriticalityTimeAttenuation,
-  computeCriticality,
-  type CriticalityLevel,
-} from "@/lib/criticality";
 import type { ObservationMapItem } from "@/types/observation";
 import { db } from "@/lib/db";
 import { observationsTable } from "@/lib/db/schema";
@@ -33,31 +28,7 @@ export const getObservationsForMap =
       .limit(LIMIT_RECENT);
 
     return rows.map((r) => {
-      const indicesData = r.indices as
-        | {
-            keys?: string[];
-            details?: {
-              avalanche?: { tailles?: number[]; declenchementARemote?: boolean };
-            };
-          }
-        | null;
-      const indices = indicesData?.keys ?? [];
-      const observables = (r.observables as string[] | null) ?? [];
-      const avalancheTailles = indicesData?.details?.avalanche?.tailles;
-      const declenchementARemote =
-        indicesData?.details?.avalanche?.declenchementARemote;
-      const baseCriticality = computeCriticality({
-        indices,
-        observables,
-        avalancheTailles,
-        declenchementARemote,
-      });
-      const observedAt =
-        r.observedAt ?? r.createdAt ?? new Date().toISOString();
-      const criticality_level = applyCriticalityTimeAttenuation(
-        baseCriticality,
-        observedAt
-      );
+      const indicesData = r.indices as { keys?: string[] } | null;
       return {
         id: r.id,
         latitude: r.latitude,
@@ -65,9 +36,10 @@ export const getObservationsForMap =
         place_name: r.placeName ?? undefined,
         observed_at: r.observedAt?.toISOString() ?? r.createdAt?.toISOString(),
         created_at: r.createdAt?.toISOString(),
-        criticality_level,
         elevation: r.elevation ?? undefined,
         orientations: (r.orientations as string[] | null) ?? undefined,
+        indices: indicesData?.keys ?? undefined,
+        observables: (r.observables as string[] | null) ?? undefined,
       };
     });
   };
@@ -87,7 +59,6 @@ export type ObservationDetail = {
   observedAt: string;
   createdAt: string;
   updatedAt: string;
-  criticality_level: CriticalityLevel;
 };
 
 /**
@@ -109,25 +80,6 @@ export const getObservationById = async (
     publicId: string;
     comment?: string;
   }[];
-
-  const indicesData = (row.indices ?? { keys: [] }) as {
-    keys: string[];
-    details?: {
-      avalanche?: { tailles?: number[]; declenchementARemote?: boolean };
-    };
-  };
-  const observables = (row.observables ?? []) as string[];
-  const baseCriticality = computeCriticality({
-    indices: indicesData.keys,
-    observables,
-    avalancheTailles: indicesData.details?.avalanche?.tailles,
-    declenchementARemote: indicesData.details?.avalanche?.declenchementARemote,
-  });
-  const observedAt = row.observedAt ?? row.createdAt ?? new Date();
-  const criticality_level = applyCriticalityTimeAttenuation(
-    baseCriticality,
-    observedAt
-  );
 
   const observedAtStr =
     row.observedAt?.toISOString() ?? row.createdAt?.toISOString() ?? "";
@@ -154,6 +106,5 @@ export const getObservationById = async (
     observedAt: observedAtStr,
     createdAt: row.createdAt?.toISOString() ?? "",
     updatedAt: row.updatedAt?.toISOString() ?? "",
-    criticality_level,
   };
 };

@@ -1,8 +1,6 @@
 "use client";
 
 import type { ObservationMapItem } from "@/types/observation";
-import type { CriticalityLevel } from "@/lib/criticality";
-import { CRITICALITY_LABELS } from "@/lib/criticality";
 import { getCurrentPosition } from "@/lib/geo";
 import { RangeSlider } from "@/components/ui/RangeSlider";
 import type { MapBackgroundId, MapOverlayId } from "@/components/map/Map";
@@ -138,8 +136,6 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isLayersOpen, setIsLayersOpen] = useState(false);
-  const [filterRiskMin, setFilterRiskMin] = useState<CriticalityLevel>(1);
-  const [filterRiskMax, setFilterRiskMax] = useState<CriticalityLevel>(5);
   const [filterFreshnessMinIndex, setFilterFreshnessMinIndex] = useState(0);
   /** Index 2 = 5 jours (valeur initiale du filtre). */
   const [filterFreshnessMaxIndex, setFilterFreshnessMaxIndex] = useState(2);
@@ -190,11 +186,6 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
     setIsLayersOpen((prev) => !prev);
   }, []);
 
-  const handleFilterRiskChange = useCallback((low: number, high: number) => {
-    setFilterRiskMin(low as CriticalityLevel);
-    setFilterRiskMax(high as CriticalityLevel);
-  }, []);
-
   const handleFilterFreshnessChange = useCallback((low: number, high: number) => {
     setFilterFreshnessMinIndex(low);
     setFilterFreshnessMaxIndex(high);
@@ -233,10 +224,6 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
     const minAgeMs = FRESHNESS_VALUES_MS[filterFreshnessMinIndex] ?? 0;
     const maxAgeMs = FRESHNESS_VALUES_MS[filterFreshnessMaxIndex] ?? Infinity;
     return observations.filter((obs) => {
-      const withinRisk =
-        obs.criticality_level >= filterRiskMin &&
-        obs.criticality_level <= filterRiskMax;
-      if (!withinRisk) return false;
       const observedAt = obs.observed_at ?? obs.created_at;
       const observedTs = observedAt ? new Date(observedAt).getTime() : 0;
       const ageMs = Date.now() - observedTs;
@@ -246,8 +233,6 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
     });
   }, [
     observations,
-    filterRiskMin,
-    filterRiskMax,
     filterFreshnessMinIndex,
     filterFreshnessMaxIndex,
   ]);
@@ -446,31 +431,7 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
           >
             <div
               role="group"
-              aria-label="Plage de risque"
-              className="flex flex-col gap-2"
-            >
-              <span className="text-sm font-medium text-zinc-700">
-                Risque : {CRITICALITY_LABELS[filterRiskMin]} →{" "}
-                {CRITICALITY_LABELS[filterRiskMax]}
-              </span>
-              <RangeSlider
-                min={1}
-                max={5}
-                step={1}
-                valueLow={filterRiskMin}
-                valueHigh={filterRiskMax}
-                onChange={handleFilterRiskChange}
-                ariaLabelLow="Risque minimum"
-                ariaLabelHigh="Risque maximum"
-              />
-              <div className="flex justify-between text-xs text-zinc-500">
-                <span>1</span>
-                <span>5</span>
-              </div>
-            </div>
-            <div
-              role="group"
-              aria-label="Plage de fraîcheur"
+              aria-label="Plage de fraîcheur des observations"
               className="flex flex-col gap-2"
             >
               <span className="text-sm font-medium text-zinc-700">

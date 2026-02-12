@@ -23,6 +23,30 @@ export const ORIENTATION_ANGLES: Record<string, number> = {
   NO: -135,
 };
 
+/** Date/heure formatée pour le popup (ex: "Aujourd'hui 14h", "12 fév. 9h"). */
+export const formatObservedAt = (
+  observedAt: string | null | undefined
+): string => {
+  if (!observedAt) return "";
+  const d = new Date(observedAt);
+  const now = new Date();
+  const diffDays = Math.floor(
+    (now.getTime() - d.getTime()) / (24 * 60 * 60 * 1000)
+  );
+
+  const timeStr = d.toLocaleTimeString("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (diffDays === 0) return `Aujourd'hui ${timeStr}`;
+  if (diffDays === 1) return `Hier ${timeStr}`;
+  return `${d.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+  })} ${timeStr}`;
+};
+
 /** Fraîcheur relative (ex: "2h", "3j", "1sem"). */
 export const getFreshnessLabel = (
   createdAt: string | null | undefined

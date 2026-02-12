@@ -1,14 +1,17 @@
 "use client";
 
-import { CRITICALITY_MARKER_COLORS } from "@/lib/criticality";
 import {
+  formatObservedAt,
   getElevationRoundedLabel,
   getFreshnessLabel,
   ORIENTATION_ANGLES,
 } from "@/lib/marker-utils";
-import { CriticalityInfo } from "@/components/observation/CriticalityInfo";
-import { RiskBadge } from "@/components/observation/RiskBadge";
-import type { ObservationMapItem } from "@/types/observation";
+import type { IndiceKey, ObservableKey } from "@/types/observation";
+import {
+  INDICE_LABELS,
+  OBSERVABLE_LABELS,
+  type ObservationMapItem,
+} from "@/types/observation";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import Link from "next/link";
@@ -78,7 +81,7 @@ const createMarkerIcon = (
   const elevationText = elevationLabel != null ? `${elevationLabel}m` : "—";
 
   return L.divIcon({
-    className: "criticality-marker",
+    className: "observation-marker",
     html: `
       <div style="position: relative; width: ${CONTAINER_SIZE}px; height: ${CONTAINER_SIZE}px;">
         <div style="
@@ -219,7 +222,7 @@ export const Map = ({
           obs.observed_at ?? obs.created_at
         );
         const icon = createMarkerIcon(
-          CRITICALITY_MARKER_COLORS[obs.criticality_level],
+          "#52525b",
           elevationLabel,
           obs.orientations ?? [],
           freshnessLabel,
@@ -232,16 +235,50 @@ export const Map = ({
           icon={icon}
         >
           <Popup>
-            <div className="min-w-[180px]">
-              <div className="mb-2">
-                <RiskBadge level={obs.criticality_level} size="sm" />
-              </div>
-              <div className="mb-2">
-                <CriticalityInfo />
-              </div>
+            <div className="min-w-[200px] space-y-2">
               {obs.place_name ? (
-                <p className="font-medium text-zinc-900">{obs.place_name}</p>
+                <p className="font-semibold text-zinc-900">{obs.place_name}</p>
               ) : null}
+              <dl className="space-y-1 text-sm text-zinc-600">
+                {formatObservedAt(obs.observed_at ?? obs.created_at) ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Date</dt>
+                    <dd>{formatObservedAt(obs.observed_at ?? obs.created_at)}</dd>
+                  </div>
+                ) : null}
+                {obs.elevation != null ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Alt.</dt>
+                    <dd>{obs.elevation.toLocaleString("fr-FR")} m</dd>
+                  </div>
+                ) : null}
+                {(obs.orientations?.length ?? 0) > 0 ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Expos.</dt>
+                    <dd>{obs.orientations?.join(", ") ?? "—"}</dd>
+                  </div>
+                ) : null}
+                {(obs.indices?.length ?? 0) > 0 ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Indices</dt>
+                    <dd>
+                      {obs.indices
+                        ?.map((k) => INDICE_LABELS[k as IndiceKey] ?? k)
+                        .join(", ") ?? "—"}
+                    </dd>
+                  </div>
+                ) : null}
+                {(obs.observables?.length ?? 0) > 0 ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Observ.</dt>
+                    <dd>
+                      {obs.observables
+                        ?.map((k) => OBSERVABLE_LABELS[k as ObservableKey] ?? k)
+                        .join(", ") ?? "—"}
+                    </dd>
+                  </div>
+                ) : null}
+              </dl>
               <Link
                 href={`/observation/${obs.id}`}
                 className="mt-2 inline-block rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium !text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"

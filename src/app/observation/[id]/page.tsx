@@ -8,8 +8,6 @@ import { IndicesDisplay } from "@/components/observation/IndicesDisplay";
 import { ObservationMapSection } from "@/components/observation/ObservationMapSection";
 import { ObservationPhotosGallery } from "@/components/observation/ObservationPhotosGallery";
 import { OrientationBadges } from "@/components/observation/OrientationBadges";
-import { RiskBadge } from "@/components/observation/RiskBadge";
-import { CriticalityInfo } from "@/components/observation/CriticalityInfo";
 
 const formatFreshness = (observedAt: string): string => {
   if (!observedAt) return "";
@@ -75,16 +73,12 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
         >
           ← Retour
         </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-semibold text-zinc-900">
-            {obs.placeName
-              ? `${obs.placeName} — ${freshness}`
-              : `Observation — ${freshness}`}
-          </h1>
-          <RiskBadge level={obs.criticality_level} />
-        </div>
+        <h1 className="mt-2 text-2xl font-semibold text-zinc-900">
+          {obs.placeName
+            ? `${obs.placeName} — ${freshness}`
+            : `Observation — ${freshness}`}
+        </h1>
         <p className="mt-1 text-sm text-zinc-500">{formattedDate}</p>
-        <CriticalityInfo />
       </header>
 
       <div className="flex flex-col gap-6">

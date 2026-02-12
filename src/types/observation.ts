@@ -1,4 +1,5 @@
-import type { CriticalityLevel } from "@/lib/criticality";
+/** Indices nivologiques (Winter Journal). */
+export const INDICE_KEYS = ["avalanche", "fissure", "woumpf"] as const;
 
 /**
  * Résumé d'une observation pour l'affichage sur la carte (marqueurs).
@@ -11,13 +12,12 @@ export type ObservationMapItem = {
   /** Date de l'observation terrain (prioritaire pour le tri des marqueurs). */
   observed_at?: string;
   created_at?: string;
-  criticality_level: CriticalityLevel;
   elevation?: number | null;
   orientations?: string[];
+  indices?: string[];
+  observables?: string[];
 };
 
-/** Indices nivologiques (Winter Journal). */
-export const INDICE_KEYS = ["avalanche", "fissure", "woumpf"] as const;
 export type IndiceKey = (typeof INDICE_KEYS)[number];
 
 /** Observables nivologiques (Winter Journal). */
