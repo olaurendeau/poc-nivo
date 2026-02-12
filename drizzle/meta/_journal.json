@@ -15,6 +15,13 @@
       "when": 1770724858332,
       "tag": "0001_handy_martin_li",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770924446404,
+      "tag": "0002_furry_stephen_strange",
+      "breakpoints": true
     }
   ]
 }

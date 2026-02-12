@@ -50,6 +50,7 @@ export const saveObservationAction = async (
         },
         observables: data.observables ?? [],
         photos: toDbPhotos(data.photos ?? []),
+        profileTests: data.profileTests ?? { stabilityTests: [] },
         observedAt,
         comment: data.comment?.trim() || null,
       })

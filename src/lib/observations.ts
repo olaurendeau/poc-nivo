@@ -22,6 +22,7 @@ export const getObservationsForMap =
         orientations: observationsTable.orientations,
         indices: observationsTable.indices,
         observables: observationsTable.observables,
+        profileTests: observationsTable.profileTests,
       })
       .from(observationsTable)
       .orderBy(desc(observationsTable.createdAt))
@@ -40,9 +41,20 @@ export const getObservationsForMap =
         orientations: (r.orientations as string[] | null) ?? undefined,
         indices: indicesData?.keys ?? undefined,
         observables: (r.observables as string[] | null) ?? undefined,
+        profile_tests: r.profileTests ?? undefined,
       };
     });
   };
+
+export type ProfileTestsDetail = {
+  totalHeightCm?: number;
+  profileImage?: { url: string; publicId: string };
+  stabilityTests: Array<{
+    type: "CT" | "ECT" | "RB" | "PST";
+    score: string;
+    depthCm: number;
+  }>;
+};
 
 export type ObservationDetail = {
   id: string;
@@ -54,6 +66,7 @@ export type ObservationDetail = {
   indices: { keys: string[]; details?: { avalanche?: unknown } };
   observables: string[];
   photos: { id: string; url: string; publicId: string; comment: string }[];
+  profileTests: ProfileTestsDetail;
   comment: string | null;
   /** Date d'observation terrain (prioritaire pour l'affichage). */
   observedAt: string;
@@ -81,6 +94,23 @@ export const getObservationById = async (
     comment?: string;
   }[];
 
+  const rawProfileTests = (row.profileTests ?? { stabilityTests: [] }) as {
+    totalHeightCm?: number;
+    profileImage?: { url: string; publicId: string };
+    stabilityTests?: Array<{ type: string; score: string; depthCm: number }>;
+  };
+  const profileTests: ProfileTestsDetail = {
+    totalHeightCm: rawProfileTests.totalHeightCm,
+    profileImage: rawProfileTests.profileImage,
+    stabilityTests: (rawProfileTests.stabilityTests ?? []).map((t) => ({
+      type: ["CT", "ECT", "RB", "PST"].includes(t.type)
+        ? (t.type as "CT" | "ECT" | "RB" | "PST")
+        : "CT",
+      score: t.score,
+      depthCm: t.depthCm,
+    })),
+  };
+
   const observedAtStr =
     row.observedAt?.toISOString() ?? row.createdAt?.toISOString() ?? "";
 
@@ -102,6 +132,7 @@ export const getObservationById = async (
       publicId: p.publicId,
       comment: p.comment ?? "",
     })),
+    profileTests,
     comment: row.comment ?? null,
     observedAt: observedAtStr,
     createdAt: row.createdAt?.toISOString() ?? "",

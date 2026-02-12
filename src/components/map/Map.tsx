@@ -278,6 +278,23 @@ export const Map = ({
                     </dd>
                   </div>
                 ) : null}
+                {(obs.profile_tests?.stabilityTests?.length ?? 0) > 0 ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Tests</dt>
+                    <dd className="text-xs tracking-wide">
+                      {[...(obs.profile_tests?.stabilityTests ?? [])]
+                        .sort((a, b) => a.depthCm - b.depthCm)
+                        .map((t) => {
+                          const s =
+                            t.type === "PST"
+                              ? `${t.type} ${t.score}`
+                              : `${t.type}${t.score}`;
+                          return `${s}@${t.depthCm}cm`;
+                        })
+                        .join(", ")}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
               <Link
                 href={`/observation/${obs.id}`}

@@ -144,6 +144,41 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
           </section>
         ) : null}
 
+        {(obs.profileTests.profileImage ||
+          obs.profileTests.stabilityTests.length > 0) ? (
+          <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <h2 className="mb-3 text-lg font-semibold text-zinc-900">
+              Profils &amp; tests
+            </h2>
+            {obs.profileTests.profileImage ? (
+              <div className="mb-4 overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                <img
+                  src={obs.profileTests.profileImage.url}
+                  alt="Profil de neige"
+                  className="w-full object-contain"
+                />
+              </div>
+            ) : null}
+            {obs.profileTests.stabilityTests.length > 0 ? (
+              <ul className="flex flex-col gap-2">
+                {[...obs.profileTests.stabilityTests]
+                  .sort((a, b) => a.depthCm - b.depthCm)
+                  .map((t, i) => (
+                    <li
+                      key={`${t.type}-${t.score}-${t.depthCm}-${i}`}
+                      className="rounded-xl bg-zinc-50 px-4 py-3 text-sm font-medium tracking-wide text-zinc-800"
+                    >
+                      {t.type === "PST"
+                        ? `${t.type} ${t.score}`
+                        : `${t.type}${t.score}`}
+                      @{t.depthCm}cm
+                    </li>
+                  ))}
+              </ul>
+            ) : null}
+          </section>
+        ) : null}
+
         {obs.photos.length > 0 ? (
           <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
             <h2 className="mb-3 text-lg font-semibold text-zinc-900">

@@ -12,6 +12,7 @@ import type {
   IndiceKey,
   ObservableKey,
   OrientationKey,
+  ProfileTestsJson,
 } from "@/types/observation";
 
 /** Photo d'observation (Cloudinary). */
@@ -48,6 +49,9 @@ export const observationsTable = pgTable("observations", {
   photos: jsonb("photos")
     .$type<ObservationPhotoJson[]>()
     .default([]),
+  profileTests: jsonb("profile_tests")
+    .$type<ProfileTestsJson>()
+    .default({ stabilityTests: [] }),
   comment: text("comment"),
 });
 

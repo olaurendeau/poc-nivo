@@ -1,0 +1,1 @@
+ALTER TABLE "observations" ADD COLUMN "profile_tests" jsonb DEFAULT '{"stabilityTests":[]}'::jsonb;

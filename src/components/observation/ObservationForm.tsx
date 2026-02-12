@@ -41,6 +41,7 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     photos: [],
     observed_at: formatDateTimeLocal(new Date()),
     comment: "",
+    profileTests: { stabilityTests: [] },
   }));
   const [elevationLoading, setElevationLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -113,6 +114,16 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
     setFormData((prev) => ({ ...prev, comment }));
   }, []);
 
+  const handleProfileTestsChange = useCallback(
+    (profileTests: ObservationFormData["profileTests"]) => {
+      setFormData((prev) => ({
+        ...prev,
+        profileTests: profileTests ?? { stabilityTests: [] },
+      }));
+    },
+    []
+  );
+
   const canSubmit =
     formData.latitude != null &&
     formData.longitude != null;
@@ -161,7 +172,10 @@ export const ObservationForm = ({ initialLocation }: ObservationFormProps) => {
           value={formData.observables}
           onChange={handleObservablesChange}
         />
-        <ProfilesTestsSection />
+        <ProfilesTestsSection
+          value={formData.profileTests ?? { stabilityTests: [] }}
+          onChange={handleProfileTestsChange}
+        />
         <PhotosSection
           value={formData.photos}
           onChange={handlePhotosChange}

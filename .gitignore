@@ -1,5 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
+/docs/contexte/Winterjournal_FR_all.pdf
+
 # dependencies
 /node_modules
 /.pnp
