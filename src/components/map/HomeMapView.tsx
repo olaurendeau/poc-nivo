@@ -117,12 +117,13 @@ type HomeMapViewProps = {
 
 const FRESHNESS_VALUES_MS = [
   0,
-  24 * 60 * 60 * 1000,
-  7 * 24 * 60 * 60 * 1000,
+  2 * 24 * 60 * 60 * 1000,
+  5 * 24 * 60 * 60 * 1000,
+  10 * 24 * 60 * 60 * 1000,
   30 * 24 * 60 * 60 * 1000,
   Infinity,
 ] as const;
-const FRESHNESS_LABELS = ["—", "24h", "7j", "1 mois", "Tout"] as const;
+const FRESHNESS_LABELS = ["—", "2j", "5j", "10j", "1 mois", "Tout"] as const;
 
 export const HomeMapView = ({ observations: initialObservations }: HomeMapViewProps) => {
   const router = useRouter();
@@ -140,7 +141,7 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
   const [filterRiskMin, setFilterRiskMin] = useState<CriticalityLevel>(1);
   const [filterRiskMax, setFilterRiskMax] = useState<CriticalityLevel>(5);
   const [filterFreshnessMinIndex, setFilterFreshnessMinIndex] = useState(0);
-  /** Index 2 = 7 jours (valeur initiale du filtre). */
+  /** Index 2 = 5 jours (valeur initiale du filtre). */
   const [filterFreshnessMaxIndex, setFilterFreshnessMaxIndex] = useState(2);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [newObservationsCount, setNewObservationsCount] = useState<number | null>(null);
@@ -478,7 +479,7 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
               </span>
               <RangeSlider
                 min={0}
-                max={4}
+                max={FRESHNESS_LABELS.length - 1}
                 step={1}
                 valueLow={filterFreshnessMinIndex}
                 valueHigh={filterFreshnessMaxIndex}
