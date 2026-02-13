@@ -113,7 +113,7 @@ src/
 - **Composants** : PascalCase ; un composant par fichier dans `components/`.
 - **Server Actions** : dans `lib/` ou colocalisées dans le module concerné ; nom en `action...` ou suffixe `Action`.
 - **Types** : dans `types/`, réexportés si besoin depuis `lib/`.
-- **Env** : `DATABASE_URL` (Neon) ; `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (ou variables fournies par le SDK Cloudinary) pour les photos ; `NEXT_PUBLIC_IGN_API_KEY` (optionnel) pour le calque pentes IGN.
+- **Env** : `DATABASE_URL` (Neon) ; `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET` (ou variables fournies par le SDK Cloudinary) pour les photos ; `NEXT_PUBLIC_IGN_API_KEY` (optionnel) pour le calque pentes IGN ; `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel) pour Google Analytics 4.
 
 ## 10. Fonds et calques carte
 
