@@ -360,6 +360,16 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
               className="absolute right-full top-0 mr-2 flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white/95 p-4 shadow-lg backdrop-blur sm:min-w-[200px]"
               aria-label="Menu paramètres"
             >
+            <Link
+              href="/a-propos"
+              onClick={() => setIsSettingsOpen(false)}
+              className="flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-4 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 active:bg-zinc-200"
+              tabIndex={0}
+              aria-label="En savoir plus sur l’objectif et l’ambition du projet"
+              role="menuitem"
+            >
+              À propos
+            </Link>
             <div
               role="group"
               aria-label="Taille des marqueurs"

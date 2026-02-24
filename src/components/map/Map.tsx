@@ -6,10 +6,15 @@ import {
   getFreshnessLabel,
   ORIENTATION_ANGLES,
 } from "@/lib/marker-utils";
-import type { IndiceKey, ObservableKey } from "@/types/observation";
+import type {
+  IndiceKey,
+  ObservableKey,
+  ObserverSkill,
+} from "@/types/observation";
 import {
   INDICE_LABELS,
   OBSERVABLE_LABELS,
+  OBSERVER_SKILL_LABELS,
   type ObservationMapItem,
 } from "@/types/observation";
 import "leaflet/dist/leaflet.css";
@@ -228,6 +233,15 @@ export const Map = ({
           freshnessLabel,
           markerScale
         );
+        const observerSkillLabel = obs.observer_skill
+          ? OBSERVER_SKILL_LABELS[obs.observer_skill as ObserverSkill] ?? null
+          : null;
+        const observerSummary = [
+          obs.observer_name ? obs.observer_name.trim() : null,
+          observerSkillLabel,
+        ]
+          .filter((part): part is string => !!part)
+          .join(" · ");
         return (
         <Marker
           key={obs.id}
@@ -240,6 +254,12 @@ export const Map = ({
                 <p className="font-semibold text-zinc-900">{obs.place_name}</p>
               ) : null}
               <dl className="space-y-1 text-sm text-zinc-600">
+                {observerSummary ? (
+                  <div className="flex gap-2">
+                    <dt className="shrink-0 font-medium text-zinc-500">Obs.</dt>
+                    <dd>{observerSummary}</dd>
+                  </div>
+                ) : null}
                 {formatObservedAt(obs.observed_at ?? obs.created_at) ? (
                   <div className="flex gap-2">
                     <dt className="shrink-0 font-medium text-zinc-500">Date</dt>
@@ -296,14 +316,51 @@ export const Map = ({
                   </div>
                 ) : null}
               </dl>
-              <Link
-                href={`/observation/${obs.id}`}
-                className="mt-2 inline-block rounded-lg bg-zinc-900 px-3 py-2 text-sm font-medium !text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
-                tabIndex={0}
-                aria-label={`Voir l'observation ${obs.place_name ?? obs.id}`}
-              >
-                Voir l&apos;observation
-              </Link>
+              <div className="mt-2 flex items-center justify-between gap-2">
+                {obs.has_photos ? (
+                  <div className="flex items-center gap-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="h-3.5 w-3.5"
+                      aria-hidden
+                    >
+                      <rect x="3" y="5" width="18" height="14" rx="2" />
+                      <circle cx="9" cy="11" r="3" />
+                      <path d="M13 7h4" />
+                    </svg>
+                    <span>
+                      Photos
+                      {(obs.photos_count ?? 0) > 1 ? ` ×${obs.photos_count}` : ""}
+                    </span>
+                  </div>
+                ) : (
+                  <span className="text-xs text-zinc-400">Aucune photo</span>
+                )}
+                <div className="flex gap-1.5">
+                  <Link
+                    href={`/observation/${obs.id}`}
+                    className="inline-flex min-h-[32px] items-center justify-center rounded-lg bg-zinc-900 px-3 text-xs font-medium !text-white hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+                    tabIndex={0}
+                    aria-label={`Voir l'observation ${obs.place_name ?? obs.id}`}
+                  >
+                    Voir
+                  </Link>
+                  <Link
+                    href={`/observation/${obs.id}/edit`}
+                    className="inline-flex min-h-[32px] items-center justify-center rounded-lg border border-zinc-300 bg-white px-3 text-xs font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+                    tabIndex={0}
+                    aria-label={`Modifier l'observation ${obs.place_name ?? obs.id}`}
+                  >
+                    Modifier
+                  </Link>
+                </div>
+              </div>
             </div>
           </Popup>
         </Marker>
