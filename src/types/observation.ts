@@ -16,16 +16,29 @@ export type ObservationMapItem = {
   orientations?: string[];
   indices?: string[];
   observables?: string[];
+  /** Indique si au moins une photo est associée à l'observation. */
+  has_photos?: boolean;
+  /** Nombre de photos associées à l'observation (optionnel). */
+  photos_count?: number;
   /** Résultats des tests CT / ECT pour la popup */
   profile_tests?: {
     stabilityTests?: Array<{ type: string; score: string; depthCm: number }>;
   };
+  /** Nom / pseudo de l'observateur. */
+  observer_name?: string | null;
+  /** Compétence de l'observateur. */
+  observer_skill?: ObserverSkill | null;
 };
 
 export type IndiceKey = (typeof INDICE_KEYS)[number];
 
 /** Observables nivologiques (Winter Journal). */
-export const OBSERVABLE_KEYS = ["transport", "surcharge", "humidification"] as const;
+export const OBSERVABLE_KEYS = [
+  "recentSnow",
+  "wetSnow",
+  "windSnow",
+  "otherSurface",
+] as const;
 export type ObservableKey = (typeof OBSERVABLE_KEYS)[number];
 
 /** Libellés pour l'UI. */
@@ -58,10 +71,75 @@ export const AVALANCHE_CASSURE_LABELS: Record<AvalancheCassure, string> = {
   ponctuelle: "Cassure ponctuelle",
 };
 
+export const AVALANCHE_TAILLE_LABELS: Record<AvalancheTaille, string> = {
+  1: "Petite avalanche",
+  2: "Avalanche moyenne",
+  3: "Grande avalanche",
+  4: "Très grande avalanche",
+  5: "Extrêmement grande avalanche",
+};
+
 export const OBSERVABLE_LABELS: Record<ObservableKey, string> = {
-  transport: "Transport",
-  surcharge: "Surcharge",
-  humidification: "Humidification",
+  recentSnow: "Neige récente",
+  wetSnow: "Neige humide",
+  windSnow: "Neige ventée",
+  otherSurface: "Autres observations de surface",
+};
+
+/** Détails – Neige récente. */
+export type RecentSnowDetails = {
+  /** Épaisseur de neige récente en cm. */
+  thicknessCm?: number;
+  /** Présence de vent pendant ou après la chute. */
+  wind?: boolean | null;
+  /** Hausse marquée des températures. */
+  warming?: boolean | null;
+};
+
+/** Détails – Neige humide. */
+export type WetSnowDetails = {
+  /** Épaisseur de la couche de neige humide en cm. */
+  thicknessCm?: number;
+  /** Première humidification de la saison / du manteau. */
+  firstWetting?: boolean | null;
+  /** Présence de boulettes ou purges. */
+  rollersOrSluffs?: boolean | null;
+};
+
+/** Transport de neige ventée – localisation. */
+export type WindSnowTransportLocation = "crests" | "everywhere";
+
+/** Indices de surface pour neige ventée. */
+export type WindSnowSurfaceIndex =
+  | "erosions"
+  | "accumulations"
+  | "cornices";
+
+/** Aspect des zones d'accumulation pour neige ventée. */
+export type WindSnowAccumulationAspect = "hardSnow" | "softSnow";
+
+/** Détails – Neige ventée. */
+export type WindSnowDetails = {
+  transportLocation?: WindSnowTransportLocation;
+  surfaceIndices?: WindSnowSurfaceIndex[];
+  accumulationAspect?: WindSnowAccumulationAspect;
+};
+
+/** Drapeaux pour autres observations de surface. */
+export type OtherSurfaceFlags = {
+  lowSnow?: boolean;
+  surfaceFacet?: boolean;
+  surfaceHoar?: boolean;
+  surfaceCrust?: boolean;
+  windCrust?: boolean;
+};
+
+/** Détails complets pour les observables. */
+export type ObservablesDetails = {
+  recentSnow?: RecentSnowDetails;
+  wetSnow?: WetSnowDetails;
+  windSnow?: WindSnowDetails;
+  otherSurface?: OtherSurfaceFlags;
 };
 
 /** Orientations / expositions (rosace, 8 directions). */
@@ -211,6 +289,15 @@ export type ProfileTestsJson = {
   stabilityTests: StabilityTestResult[];
 };
 
+/** Niveau de compétence de l'observateur. */
+export type ObserverSkill = "amateur" | "pro" | "obsNivo";
+
+export const OBSERVER_SKILL_LABELS: Record<ObserverSkill, string> = {
+  amateur: "Amateur",
+  pro: "Professionnel",
+  obsNivo: "Observateur nivologique",
+};
+
 /** Données de saisie d'une observation (formulaire). */
 export type ObservationFormData = {
   latitude: number | null;
@@ -221,6 +308,7 @@ export type ObservationFormData = {
   indices: IndiceKey[];
   indiceDetails?: { avalanche?: AvalancheDetails };
   observables: ObservableKey[];
+  observableDetails?: ObservablesDetails;
   photos: ObservationFormPhoto[];
   /** Date/heure de l'observation (format datetime-local: YYYY-MM-DDTHH:mm). */
   observed_at: string;
@@ -228,4 +316,8 @@ export type ObservationFormData = {
   comment?: string;
   /** Profils de neige et résultats CT / ECT */
   profileTests?: ProfileTestsJson;
+  /** Nom ou pseudo de l'observateur. */
+  observerName?: string;
+  /** Compétence / profil de l'observateur. */
+  observerSkill?: ObserverSkill | null;
 };

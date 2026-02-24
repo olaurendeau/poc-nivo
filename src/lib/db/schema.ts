@@ -11,6 +11,7 @@ import type {
   AvalancheDetails,
   IndiceKey,
   ObservableKey,
+  ObservablesDetails,
   OrientationKey,
   ProfileTestsJson,
 } from "@/types/observation";
@@ -26,6 +27,12 @@ export type ObservationPhotoJson = {
 export type IndicesJson = {
   keys: IndiceKey[];
   details?: { avalanche?: AvalancheDetails };
+};
+
+/** JSON des observables avec détails. */
+export type ObservablesJson = {
+  keys: ObservableKey[];
+  details?: ObservablesDetails;
 };
 
 export const observationsTable = pgTable("observations", {
@@ -45,7 +52,9 @@ export const observationsTable = pgTable("observations", {
   indices: jsonb("indices").$type<IndicesJson>().default({
     keys: [],
   }),
-  observables: jsonb("observables").$type<ObservableKey[]>().default([]),
+  observables: jsonb("observables").$type<ObservablesJson>().default({
+    keys: [],
+  }),
   photos: jsonb("photos")
     .$type<ObservationPhotoJson[]>()
     .default([]),
@@ -53,6 +62,8 @@ export const observationsTable = pgTable("observations", {
     .$type<ProfileTestsJson>()
     .default({ stabilityTests: [] }),
   comment: text("comment"),
+  observerName: text("observer_name"),
+  observerSkill: text("observer_skill"),
 });
 
 export type Observation = typeof observationsTable.$inferSelect;
