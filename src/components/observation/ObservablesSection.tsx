@@ -178,7 +178,6 @@ export const ObservablesSection = ({
           onChange(toggleObservable(value, activeObservable));
           if (onDetailsChange) {
             const next: ObservablesDetails = { ...(details ?? {}) };
-            // @ts-expect-error index by observable key
             delete next[activeObservable];
             if (Object.keys(next).length === 0) {
               onDetailsChange(undefined);

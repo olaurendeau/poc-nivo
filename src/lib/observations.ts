@@ -61,7 +61,7 @@ export const getObservationsForMap =
         photos_count: photosData?.length ?? 0,
         profile_tests: r.profileTests ?? undefined,
         observer_name: r.observerName ?? null,
-        observer_skill: (r.observerSkill as string | null) ?? null,
+        observer_skill: (r.observerSkill as ObservationMapItem["observer_skill"]) ?? null,
       };
     });
   };

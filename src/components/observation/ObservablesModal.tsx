@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef } from "react";
 import type {
   ObservableKey,
   ObservablesDetails,
+  WindSnowSurfaceIndex,
 } from "@/types/observation";
 
 type ObservablesModalProps = {
@@ -313,9 +314,9 @@ export const ObservablesModal = ({
                 }`}
                 aria-pressed={isSelected}
                 onClick={() => {
-                  const next = isSelected
+                  const next = (isSelected
                     ? current.filter((k) => k !== opt.key)
-                    : [...current, opt.key];
+                    : [...current, opt.key]) as WindSnowSurfaceIndex[];
                   updateDetails({
                     windSnow: {
                       ...value.windSnow,

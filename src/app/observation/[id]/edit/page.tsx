@@ -52,7 +52,7 @@ export default async function EditObservationPage({
     elevation: obs.elevation,
     orientations: obs.orientations as ObservationFormData["orientations"],
     indices: obs.indices.keys as ObservationFormData["indices"],
-    indiceDetails: obs.indices.details,
+    indiceDetails: obs.indices.details as ObservationFormData["indiceDetails"],
     observables: obs.observables as ObservationFormData["observables"],
     observableDetails: obs.observablesDetails,
     photos: obs.photos.map((p) => ({
