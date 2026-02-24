@@ -1,5 +1,8 @@
 import { desc, eq } from "drizzle-orm";
-import type { ObservationMapItem } from "@/types/observation";
+import type {
+  ObservationMapItem,
+  ObservablesDetails,
+} from "@/types/observation";
 import { db } from "@/lib/db";
 import { observationsTable } from "@/lib/db/schema";
 
@@ -22,7 +25,10 @@ export const getObservationsForMap =
         orientations: observationsTable.orientations,
         indices: observationsTable.indices,
         observables: observationsTable.observables,
+        photos: observationsTable.photos,
         profileTests: observationsTable.profileTests,
+        observerName: observationsTable.observerName,
+        observerSkill: observationsTable.observerSkill,
       })
       .from(observationsTable)
       .orderBy(desc(observationsTable.createdAt))
@@ -30,6 +36,16 @@ export const getObservationsForMap =
 
     return rows.map((r) => {
       const indicesData = r.indices as { keys?: string[] } | null;
+      const observablesData = r.observables as
+        | { keys?: string[] }
+        | string[]
+        | null;
+      const photosData = (r.photos ?? []) as { url: string }[] | null;
+
+      const observablesKeys = Array.isArray(observablesData)
+        ? observablesData
+        : observablesData?.keys;
+
       return {
         id: r.id,
         latitude: r.latitude,
@@ -40,8 +56,12 @@ export const getObservationsForMap =
         elevation: r.elevation ?? undefined,
         orientations: (r.orientations as string[] | null) ?? undefined,
         indices: indicesData?.keys ?? undefined,
-        observables: (r.observables as string[] | null) ?? undefined,
+        observables: observablesKeys ?? undefined,
+        has_photos: (photosData?.length ?? 0) > 0,
+        photos_count: photosData?.length ?? 0,
         profile_tests: r.profileTests ?? undefined,
+        observer_name: r.observerName ?? null,
+        observer_skill: (r.observerSkill as string | null) ?? null,
       };
     });
   };
@@ -65,9 +85,12 @@ export type ObservationDetail = {
   orientations: string[];
   indices: { keys: string[]; details?: { avalanche?: unknown } };
   observables: string[];
+  observablesDetails?: ObservablesDetails;
   photos: { id: string; url: string; publicId: string; comment: string }[];
   profileTests: ProfileTestsDetail;
   comment: string | null;
+  observerName: string | null;
+  observerSkill: string | null;
   /** Date d'observation terrain (prioritaire pour l'affichage). */
   observedAt: string;
   createdAt: string;
@@ -125,7 +148,23 @@ export const getObservationById = async (
       keys: string[];
       details?: { avalanche?: unknown };
     },
-    observables: (row.observables ?? []) as string[],
+    observables: (() => {
+      const raw = row.observables as
+        | { keys?: string[]; details?: ObservablesDetails }
+        | string[]
+        | null;
+      if (!raw) return [];
+      if (Array.isArray(raw)) return raw;
+      return raw.keys ?? [];
+    })(),
+    observablesDetails: (() => {
+      const raw = row.observables as
+        | { keys?: string[]; details?: ObservablesDetails }
+        | string[]
+        | null;
+      if (!raw || Array.isArray(raw)) return undefined;
+      return raw.details;
+    })(),
     photos: rawPhotos.map((p) => ({
       id: p.publicId,
       url: p.url,
@@ -134,6 +173,8 @@ export const getObservationById = async (
     })),
     profileTests,
     comment: row.comment ?? null,
+    observerName: row.observerName ?? null,
+    observerSkill: (row.observerSkill as string | null) ?? null,
     observedAt: observedAtStr,
     createdAt: row.createdAt?.toISOString() ?? "",
     updatedAt: row.updatedAt?.toISOString() ?? "",
