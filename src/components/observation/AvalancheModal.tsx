@@ -8,6 +8,7 @@ import type {
 } from "@/types/observation";
 import {
   AVALANCHE_CASSURE_LABELS,
+  AVALANCHE_TAILLE_LABELS,
   AVALANCHE_TYPE_LABELS,
 } from "@/types/observation";
 import { useCallback, useEffect, useRef } from "react";
@@ -99,6 +100,23 @@ export const AvalancheModal = ({
 
   const handleDeclenchementARemoteChange = (declenchementARemote: boolean) => {
     onChange({ ...value, declenchementARemote });
+  };
+
+  const getSelectedTailleLabel = () => {
+    const tailles = value.tailles;
+    if (!tailles || tailles.length === 0) {
+      return "";
+    }
+
+    const sorted = [...tailles].sort((a, b) => a - b);
+    const min = sorted[0];
+    const max = sorted[sorted.length - 1];
+
+    if (min === max) {
+      return AVALANCHE_TAILLE_LABELS[min];
+    }
+
+    return `${AVALANCHE_TAILLE_LABELS[min]} à ${AVALANCHE_TAILLE_LABELS[max]}`;
   };
 
   return (
@@ -240,6 +258,9 @@ export const AvalancheModal = ({
                 );
               })}
             </div>
+            <p className="text-xs text-zinc-600">
+              {getSelectedTailleLabel()}
+            </p>
           </fieldset>
         </div>
 

@@ -8,6 +8,19 @@ import type {
 import { uploadObservationPhotoAction } from "@/lib/cloudinary";
 import { ProfileModal } from "@/components/observation/ProfileModal";
 
+const IconChevron = ({ className }: { className?: string }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    className={className}
+  >
+    <path d="M6 9l6 6 6-6" />
+  </svg>
+);
+
 const IconProfile = ({ className }: { className?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -66,6 +79,7 @@ export const ProfilesTestsSection = ({
   value,
   onChange,
 }: ProfilesTestsSectionProps) => {
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const profileImageInputRef = useRef<HTMLInputElement>(null);
@@ -73,6 +87,32 @@ export const ProfilesTestsSection = ({
   const tests = value?.stabilityTests ?? [];
   const profileImage = value?.profileImage;
   const sortedTests = [...tests].sort((a, b) => a.depthCm - b.depthCm);
+
+  const hasTests = sortedTests.length > 0;
+  const hasProfileImage = Boolean(profileImage?.url);
+
+  let summaryLabel = "Aucun profil ni test saisi";
+  if (hasTests && hasProfileImage) {
+    summaryLabel = `${sortedTests.length} test(s), profil neige ajouté`;
+  } else if (hasTests) {
+    summaryLabel = `${sortedTests.length} test(s) saisi(s)`;
+  } else if (hasProfileImage) {
+    summaryLabel = "Profil neige ajouté";
+  }
+
+  const handleToggleCollapsed = useCallback(() => {
+    setIsCollapsed((prev) => !prev);
+  }, []);
+
+  const handleToggleCollapsedKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        handleToggleCollapsed();
+      }
+    },
+    [handleToggleCollapsed]
+  );
 
   const handleOpen = useCallback(() => {
     setIsOpen(true);
@@ -145,71 +185,130 @@ export const ProfilesTestsSection = ({
 
   return (
     <section className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
-      <h2 className="mb-3 text-lg font-semibold text-zinc-900">
-        Profils &amp; tests
-      </h2>
-      <p className="mb-3 text-sm text-zinc-600">
-        Tests CT, ECT, RB (Rutschblock) et PST (Propagation Saw). Plusieurs
-        résultats possibles par coupe (ex. CT6SC@40cm, RB4@55cm, PST End@40cm).
-      </p>
-
-      {sortedTests.length > 0 ? (
-        <ul className="mb-3 flex flex-col gap-2" role="list">
-          {sortedTests.map((t, i) => (
-            <li
-              key={`${t.type}-${t.score}-${t.depthCm}-${i}`}
-              className="flex min-h-[48px] items-center justify-between gap-2 rounded-xl bg-zinc-50 px-4 py-3"
-            >
-              <span className="text-sm font-medium tracking-wide text-zinc-800">
-                {formatTestLabel(t)}
-              </span>
-              <button
-                type="button"
-                onClick={() => handleRemoveTest(tests.indexOf(t))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleRemoveTest(tests.indexOf(t));
-                  }
-                }}
-                className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500"
-                aria-label={`Supprimer ${formatTestLabel(t)}`}
-                tabIndex={0}
-              >
-                <span aria-hidden>✕</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      ) : null}
       <button
         type="button"
-        onClick={handleOpen}
-        onKeyDown={handleKeyDown}
-        className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-700 hover:border-zinc-500 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
-        aria-label="Ajouter un test"
+        onClick={handleToggleCollapsed}
+        onKeyDown={handleToggleCollapsedKeyDown}
+        className="flex w-full items-center justify-between gap-3 rounded-xl bg-zinc-50 px-4 py-3"
+        aria-label="Afficher ou masquer la section Profils et tests"
+        aria-expanded={!isCollapsed}
+        aria-controls="profiles-tests-content"
         tabIndex={0}
       >
-        <IconProfile className="h-6 w-6 shrink-0" />
-        {tests.length > 0
-          ? "Ajouter un autre test"
-          : "Ajouter un test"}
+        <div className="flex flex-col items-start">
+          <span className="text-base font-semibold text-zinc-900">
+            Profils &amp; tests
+          </span>
+          <span className="text-xs text-zinc-600">{summaryLabel}</span>
+        </div>
+        <IconChevron
+          className={`h-5 w-5 shrink-0 text-zinc-600 transition-transform ${
+            isCollapsed ? "rotate-0" : "rotate-180"
+          }`}
+        />
       </button>
 
-      <div className="mt-4">
-        <h3 className="mb-2 text-sm font-medium text-zinc-700">
-          Image du profil de neige
-        </h3>
-        {profileImage?.url ? (
-          <div className="flex flex-col gap-2">
-            <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100">
-              <img
-                src={profileImage.url}
-                alt="Profil de neige"
-                className="max-h-48 w-full object-contain"
-              />
-            </div>
-            <div className="flex gap-2">
+      {!isCollapsed ? (
+        <div id="profiles-tests-content" className="mt-4 space-y-4">
+          <p className="text-sm text-zinc-600">
+            Tests CT, ECT, RB (Rutschblock) et PST (Propagation Saw). Plusieurs
+            résultats possibles par coupe (ex. CT6SC@40cm, RB4@55cm, PST
+            End@40cm).
+          </p>
+
+          {sortedTests.length > 0 ? (
+            <ul className="flex flex-col gap-2" role="list">
+              {sortedTests.map((t, i) => (
+                <li
+                  key={`${t.type}-${t.score}-${t.depthCm}-${i}`}
+                  className="flex min-h-[48px] items-center justify-between gap-2 rounded-xl bg-zinc-50 px-4 py-3"
+                >
+                  <span className="text-sm font-medium tracking-wide text-zinc-800">
+                    {formatTestLabel(t)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveTest(tests.indexOf(t))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleRemoveTest(tests.indexOf(t));
+                      }
+                    }}
+                    className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-200 hover:text-zinc-800 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                    aria-label={`Supprimer ${formatTestLabel(t)}`}
+                    tabIndex={0}
+                  >
+                    <span aria-hidden>✕</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={handleOpen}
+            onKeyDown={handleKeyDown}
+            className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-700 hover:border-zinc-500 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+            aria-label="Ajouter un test"
+            tabIndex={0}
+          >
+            <IconProfile className="h-6 w-6 shrink-0" />
+            {tests.length > 0
+              ? "Ajouter un autre test"
+              : "Ajouter un test"}
+          </button>
+
+          <div className="pt-2">
+            <h3 className="mb-2 text-sm font-medium text-zinc-700">
+              Image du profil de neige
+            </h3>
+            {profileImage?.url ? (
+              <div className="flex flex-col gap-2">
+                <div className="relative overflow-hidden rounded-xl border border-zinc-200 bg-zinc-100">
+                  <img
+                    src={profileImage.url}
+                    alt="Profil de neige"
+                    className="max-h-48 w-full object-contain"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleProfileImageClick}
+                    disabled={isUploadingImage}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleProfileImageClick();
+                      }
+                    }}
+                    className="flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center gap-2 rounded-xl border-2 border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50"
+                    aria-label="Remplacer l'image du profil"
+                    tabIndex={0}
+                  >
+                    <IconLibrary className="h-5 w-5" />
+                    Remplacer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleProfileImageRemove}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        handleProfileImageRemove();
+                      }
+                    }}
+                    className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border-2 border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+                    aria-label="Supprimer l'image du profil"
+                    tabIndex={0}
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              </div>
+            ) : (
               <button
                 type="button"
                 onClick={handleProfileImageClick}
@@ -220,62 +319,29 @@ export const ProfilesTestsSection = ({
                     handleProfileImageClick();
                   }
                 }}
-                className="flex min-h-[44px] min-w-[44px] flex-1 items-center justify-center gap-2 rounded-xl border-2 border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50"
-                aria-label="Remplacer l'image du profil"
+                className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-700 hover:border-zinc-500 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50"
+                aria-label="Ajouter une image du profil de neige"
                 tabIndex={0}
               >
-                <IconLibrary className="h-5 w-5" />
-                Remplacer
+                <IconImage className="h-6 w-6 shrink-0" />
+                {isUploadingImage
+                  ? "Envoi en cours…"
+                  : "Ajouter une photo du profil"}
               </button>
-              <button
-                type="button"
-                onClick={handleProfileImageRemove}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    handleProfileImageRemove();
-                  }
-                }}
-                className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-xl border-2 border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
-                aria-label="Supprimer l'image du profil"
-                tabIndex={0}
-              >
-                Supprimer
-              </button>
-            </div>
+            )}
+            <input
+              ref={profileImageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                handleProfileImageUpload(e.target.files);
+                e.target.value = "";
+              }}
+            />
           </div>
-        ) : (
-          <button
-            type="button"
-            onClick={handleProfileImageClick}
-            disabled={isUploadingImage}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                handleProfileImageClick();
-              }
-            }}
-            className="flex min-h-[48px] w-full items-center justify-center gap-3 rounded-xl border-2 border-dashed border-zinc-300 bg-white px-4 py-3 text-base font-medium text-zinc-700 hover:border-zinc-500 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50"
-            aria-label="Ajouter une image du profil de neige"
-            tabIndex={0}
-          >
-            <IconImage className="h-6 w-6 shrink-0" />
-            {isUploadingImage
-              ? "Envoi en cours…"
-              : "Ajouter une photo du profil"}
-          </button>
-        )}
-        <input
-          ref={profileImageInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => {
-            handleProfileImageUpload(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      </div>
+        </div>
+      ) : null}
 
       <ProfileModal
         open={isOpen}
