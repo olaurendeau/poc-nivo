@@ -1,8 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getObservationById } from "@/lib/observations";
-import type { IndiceKey, OrientationKey } from "@/types/observation";
-import { OBSERVABLE_LABELS } from "@/types/observation";
+import type {
+  IndiceKey,
+  OrientationKey,
+  ObservableKey,
+  ObservablesDetails,
+  ObserverSkill,
+} from "@/types/observation";
+import {
+  OBSERVABLE_LABELS,
+  OBSERVER_SKILL_LABELS,
+} from "@/types/observation";
 import { DeleteObservationButton } from "@/components/observation/DeleteObservationButton";
 import { IndicesDisplay } from "@/components/observation/IndicesDisplay";
 import { ObservationMapSection } from "@/components/observation/ObservationMapSection";
@@ -32,6 +41,78 @@ const formatFreshness = (observedAt: string): string => {
   if (diffDays <= 60) return "Il y a 1 mois";
   if (diffDays <= 365) return `Il y a ${Math.floor(diffDays / 30)} mois`;
   return "Il y a plus d'un an";
+};
+
+const formatObservableDetail = (
+  key: ObservableKey,
+  details?: ObservablesDetails
+): string => {
+  if (!details) return "";
+
+  if (key === "recentSnow" && details.recentSnow) {
+    const parts: string[] = [];
+    if (details.recentSnow.thicknessCm != null) {
+      parts.push(`${details.recentSnow.thicknessCm} cm`);
+    }
+    if (details.recentSnow.wind) {
+      parts.push("Vent");
+    }
+    if (details.recentSnow.warming) {
+      parts.push("Hausse T°");
+    }
+    return parts.join(" · ");
+  }
+
+  if (key === "wetSnow" && details.wetSnow) {
+    const parts: string[] = [];
+    if (details.wetSnow.thicknessCm != null) {
+      parts.push(`${details.wetSnow.thicknessCm} cm humides`);
+    }
+    if (details.wetSnow.firstWetting) {
+      parts.push("1ère humidification");
+    }
+    if (details.wetSnow.rollersOrSluffs) {
+      parts.push("Boulettes / purges");
+    }
+    return parts.join(" · ");
+  }
+
+  if (key === "windSnow" && details.windSnow) {
+    const parts: string[] = [];
+    if (details.windSnow.transportLocation === "crests") {
+      parts.push("Près des crêtes");
+    } else if (details.windSnow.transportLocation === "everywhere") {
+      parts.push("Partout");
+    }
+    if (details.windSnow.surfaceIndices?.length) {
+      const labels = details.windSnow.surfaceIndices.map((s) => {
+        if (s === "erosions") return "Érosions";
+        if (s === "accumulations") return "Accumulations";
+        if (s === "cornices") return "Corniches";
+        return s;
+      });
+      parts.push(labels.join(", "));
+    }
+    if (details.windSnow.accumulationAspect === "hardSnow") {
+      parts.push("Neige dure");
+    } else if (details.windSnow.accumulationAspect === "softSnow") {
+      parts.push("Neige friable");
+    }
+    return parts.join(" · ");
+  }
+
+  if (key === "otherSurface" && details.otherSurface) {
+    const flags = details.otherSurface;
+    const labels: string[] = [];
+    if (flags.lowSnow) labels.push("Manque de neige");
+    if (flags.surfaceFacet) labels.push("Frisette");
+    if (flags.surfaceHoar) labels.push("Givre");
+    if (flags.surfaceCrust) labels.push("Croûte en surface");
+    if (flags.windCrust) labels.push("Cartonnée");
+    return labels.join(" · ");
+  }
+
+  return "";
 };
 
 type ObservationPageProps = {
@@ -79,6 +160,25 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
             : `Observation — ${freshness}`}
         </h1>
         <p className="mt-1 text-sm text-zinc-500">{formattedDate}</p>
+        {(() => {
+          const observerSkillLabel = obs.observerSkill
+            ? OBSERVER_SKILL_LABELS[
+                obs.observerSkill as ObserverSkill
+              ] ?? null
+            : null;
+          const observerParts = [
+            obs.observerName ? obs.observerName.trim() : null,
+            observerSkillLabel,
+          ].filter((part): part is string => !!part);
+          if (observerParts.length === 0) {
+            return null;
+          }
+          return (
+            <p className="mt-1 text-xs text-zinc-500">
+              Observateur : {observerParts.join(" · ")}
+            </p>
+          );
+        })()}
       </header>
 
       <div className="flex flex-col gap-6">
@@ -131,15 +231,32 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
             <h2 className="mb-3 text-lg font-semibold text-zinc-900">
               Observables
             </h2>
-            <ul className="flex flex-wrap gap-2">
-              {obs.observables.map((o) => (
-                <li key={o}>
-                  <span className="inline-flex items-center rounded-lg bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-800">
-                    {OBSERVABLE_LABELS[o as keyof typeof OBSERVABLE_LABELS] ??
-                      o}
-                  </span>
-                </li>
-              ))}
+            <ul className="flex flex-col gap-2">
+              {obs.observables.map((o) => {
+                const key = o as ObservableKey;
+                const summary = formatObservableDetail(
+                  key,
+                  obs.observablesDetails
+                );
+                const label =
+                  OBSERVABLE_LABELS[key as keyof typeof OBSERVABLE_LABELS] ??
+                  key;
+
+                return (
+                  <li key={o}>
+                    <div className="rounded-xl bg-zinc-50 px-4 py-3">
+                      <p className="text-sm font-semibold text-zinc-900">
+                        {label}
+                      </p>
+                      {summary ? (
+                        <p className="mt-0.5 text-xs text-zinc-600">
+                          {summary}
+                        </p>
+                      ) : null}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </section>
         ) : null}
@@ -203,7 +320,17 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
           <h2 className="mb-3 text-lg font-semibold text-zinc-900">
             Actions
           </h2>
-          <DeleteObservationButton observationId={obs.id} />
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href={`/observation/${obs.id}/edit`}
+              className="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 text-sm font-medium text-zinc-700 hover:bg-zinc-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2"
+              tabIndex={0}
+              aria-label="Modifier cette observation"
+            >
+              Modifier l&apos;observation
+            </Link>
+            <DeleteObservationButton observationId={obs.id} />
+          </div>
         </section>
       </div>
     </div>
