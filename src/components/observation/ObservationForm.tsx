@@ -330,25 +330,27 @@ export const ObservationForm = ({
           </div>
         </section>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-zinc-200 bg-zinc-50 p-4 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        {submitError ? (
-          <p className="mb-2 text-center text-sm text-red-600" role="alert">
-            {submitError}
-          </p>
-        ) : null}
-        {!canSubmit ? (
-          <p className="mb-2 text-center text-sm text-zinc-500">
-            Choisissez un lieu sur la carte pour permettre l&apos;enregistrement.
-          </p>
-        ) : null}
-        <button
-          type="submit"
-          disabled={!canSubmit || isSubmitting}
-          className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-zinc-900 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
-          aria-label="Enregistrer l'observation"
-        >
-          {isSubmitting ? "Enregistrement…" : "Enregistrer l'observation"}
-        </button>
+      <div className="fixed inset-x-0 bottom-0 z-[1000] border-t border-zinc-200 bg-zinc-50">
+        <div className="mx-auto max-w-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {submitError ? (
+            <p className="mb-2 text-center text-sm text-red-600" role="alert">
+              {submitError}
+            </p>
+          ) : null}
+          {!canSubmit ? (
+            <p className="mb-2 text-center text-sm text-zinc-500">
+              Choisissez un lieu sur la carte pour permettre l&apos;enregistrement.
+            </p>
+          ) : null}
+          <button
+            type="submit"
+            disabled={!canSubmit || isSubmitting}
+            className="flex min-h-[48px] w-full items-center justify-center rounded-xl bg-zinc-900 px-6 py-4 text-base font-semibold text-white transition-colors hover:bg-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
+            aria-label="Enregistrer l'observation"
+          >
+            {isSubmitting ? "Enregistrement…" : "Enregistrer l'observation"}
+          </button>
+        </div>
       </div>
     </form>
   );

@@ -17,6 +17,7 @@ import { IndicesDisplay } from "@/components/observation/IndicesDisplay";
 import { ObservationMapSection } from "@/components/observation/ObservationMapSection";
 import { ObservationPhotosGallery } from "@/components/observation/ObservationPhotosGallery";
 import { OrientationBadges } from "@/components/observation/OrientationBadges";
+import { PageContainer } from "@/components/PageContainer";
 
 const formatFreshness = (observedAt: string): string => {
   if (!observedAt) return "";
@@ -144,7 +145,7 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
     | undefined;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 p-4 pb-8">
+    <PageContainer className="pb-8">
       <header className="mb-6">
         <Link
           href="/"
@@ -333,6 +334,6 @@ export default async function ObservationPage({ params }: ObservationPageProps) 
           </div>
         </section>
       </div>
-    </div>
+    </PageContainer>
   );
 }
