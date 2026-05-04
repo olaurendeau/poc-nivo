@@ -21,6 +21,9 @@
     "react-dom": "19.2.3",
     "react-leaflet": "^5.0.0"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "sharp", "unrs-resolver"]
+  },
   "devDependencies": {
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",
