@@ -1,0 +1,15 @@
+config:
+  session:
+    env:
+      DATABASE_URL: "${{ baguette.secrets.DATABASE_URL }}"
+      CLOUDINARY_URL: "${{ baguette.secrets.CLOUDINARY_URL }}"
+      PUBLIC_HOST: "${{ baguette.session.public_uri }}"
+    init: |
+      pnpm install
+    commands:
+      - label: Run tests
+        run: pnpm test
+  webserver:
+    command: pnpm next dev --turbopack -H 127.0.0.1 --port $PORT
+    ports: [PORT]
+    expose: PORT
