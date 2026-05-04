@@ -29,7 +29,8 @@ export default async function NewObservationPage({
     : null;
 
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 p-4">
+    <div className="min-h-dvh bg-zinc-50">
+      <div className="mx-auto flex min-h-dvh max-w-2xl flex-col p-4">
       <header className="mb-6">
         <Link
           href="/"
@@ -44,6 +45,7 @@ export default async function NewObservationPage({
         </h1>
       </header>
       <ObservationForm initialLocation={initialLocation} />
+      </div>
     </div>
   );
 }
