@@ -1,4 +1,5 @@
 import { ObservationForm } from "@/components/observation/ObservationForm";
+import { PageContainer } from "@/components/PageContainer";
 import Link from "next/link";
 
 type NewObservationPageProps = {
@@ -29,8 +30,7 @@ export default async function NewObservationPage({
     : null;
 
   return (
-    <div className="min-h-dvh bg-zinc-50">
-      <div className="mx-auto flex min-h-dvh max-w-2xl flex-col p-4">
+    <PageContainer>
       <header className="mb-6">
         <Link
           href="/"
@@ -45,7 +45,6 @@ export default async function NewObservationPage({
         </h1>
       </header>
       <ObservationForm initialLocation={initialLocation} />
-      </div>
-    </div>
+    </PageContainer>
   );
 }

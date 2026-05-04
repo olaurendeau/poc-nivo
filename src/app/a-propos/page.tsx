@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { PageContainer } from "@/components/PageContainer";
 
 export const metadata = {
   title: "À propos — Prototype Nivologie",
@@ -8,7 +9,7 @@ export const metadata = {
 
 export default function AProposPage() {
   return (
-    <div className="flex min-h-dvh flex-col bg-zinc-50 p-4 pb-8">
+    <PageContainer className="pb-8">
       <header className="mb-6">
         <Link
           href="/"
@@ -66,6 +67,6 @@ export default function AProposPage() {
           </p>
         </section>
       </main>
-    </div>
+    </PageContainer>
   );
 }

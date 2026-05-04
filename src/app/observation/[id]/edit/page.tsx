@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getObservationById } from "@/lib/observations";
 import type { ObservationFormData } from "@/types/observation";
 import { ObservationForm } from "@/components/observation/ObservationForm";
+import { PageContainer } from "@/components/PageContainer";
 
 type EditObservationPageProps = {
   params: Promise<{ id: string }>;
@@ -67,8 +68,7 @@ export default async function EditObservationPage({
   };
 
   return (
-    <div className="min-h-dvh bg-zinc-50">
-      <div className="mx-auto flex min-h-dvh max-w-2xl flex-col p-4">
+    <PageContainer>
       <header className="mb-6">
         <Link
           href={`/observation/${obs.id}`}
@@ -90,8 +90,7 @@ export default async function EditObservationPage({
         initialData={initialData}
         observationId={obs.id}
       />
-      </div>
-    </div>
+    </PageContainer>
   );
 }
 
