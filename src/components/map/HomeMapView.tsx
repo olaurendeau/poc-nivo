@@ -611,6 +611,10 @@ export const HomeMapView = ({ observations: initialObservations }: HomeMapViewPr
         +
       </Link>
 
+      <div className="absolute bottom-6 left-4 z-[500] max-w-[220px] rounded-xl border border-zinc-200 bg-white/90 px-3 py-2 shadow-md backdrop-blur text-xs text-zinc-600 italic">
+        Pourquoi les avalanches ne font jamais de bruit ? Parce qu'elles parlent toujours par-dessus la tete des gens.
+      </div>
+
       {longPressLocation != null ? (
         <div
           className="absolute inset-0 z-[1100] flex items-end justify-center bg-black/30 p-4 pb-8"
